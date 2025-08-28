@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import Optional, Tuple, Literal
 import xml.etree.ElementTree as ET
 from enum import Enum
-from typing import FrozenSet
+from dataclasses import field
+
 
 # TODO: information on what part of the question the user can modify
 # Adding rows/cols/choices
@@ -125,7 +125,7 @@ def _append_children(parent: ET.Element, children) -> None:
 
 
 @dataclass()
-class Element():
+class Element:
     """
 Base class - all questions and elements contain these
 
@@ -155,7 +155,7 @@ Attributes:
     randomize: bool | None = None
     style: str | None = None
     # allowable values (e.g. "execute,survey,report")
-    where: FrozenSet[Where] = frozenset()
+    where: set[Where] = field(default_factory=set)
     alt: str | None = None
     altlabel: str | None = None
     translateable: str | None = None
@@ -224,7 +224,7 @@ class Cell(Element):
     open: bool | None = None
     openSize: int | None = None
     # comma-separated list of unknown strings
-    groups: frozenset[str] = frozenset()
+    groups: set[str] = field(default_factory=set)
     value: int | None = None
     exclusive: bool | None = None
     aggregate: bool | None = None
@@ -282,17 +282,17 @@ class Question(Element):
     cond: str | None = None
 
     exec: str | None = None
-    grouping: FrozenSet[Grouping] = frozenset()
+    grouping: set[Grouping] = field(default_factory=set)
     optional: bool | None = None
     rightOf: str | None = None
     rowCond: str | None = None
-    rowLegend: FrozenSet[Legend] = frozenset()
-    rowShuffle: FrozenSet[RowColChoiceShuffle] = frozenset()
-    shuffle: FrozenSet[Shuffle] = frozenset()
+    rowLegend: set[Legend] = field(default_factory=set)
+    rowShuffle: set[RowColChoiceShuffle] = field(default_factory=set)
+    shuffle: set[Shuffle] = field(default_factory=set)
     shuffleBy: str | None = None
-    sortChoices: FrozenSet[Sort] = frozenset()
-    sortCols: FrozenSet[Sort] = frozenset()
-    sortRows: FrozenSet[Sort] = frozenset()
+    sortChoices: set[Sort] = field(default_factory=set)
+    sortCols: set[Sort] = field(default_factory=set)
+    sortRows: set[Sort] = field(default_factory=set)
     uses: str | None = None  # TODO: define list of these?
     values: str | None = None
     virtual: str | None = None
@@ -370,6 +370,7 @@ class RadioQuestion(Question):
 @dataclass()
 class CheckboxQuestion(Question):
     XML_TAG = "checkbox"
+    atleast: int = 1
     # atleast: bool = True
     rows: tuple[Row, ...] = ()
     cols: tuple[Col, ...] = ()
