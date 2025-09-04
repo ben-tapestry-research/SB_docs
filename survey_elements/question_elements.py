@@ -5,14 +5,15 @@ from dataclasses import field
 
 
 # TODO: information on what part of the question the user can modify
-# Adding rows/cols/choices
-# Adding exec
-# TODO: functions that convert from XML
 
 # DEFINITIONS FROM: https://forstasurveys.zendesk.com/hc/en-us/articles/4409469868315-Overview-of-Question-and-Element-Tags
 
+# ------------- ENUMS (for attributes with specific allowable values) ------------- #
 
 class Where(str, Enum):
+    """
+    Allowable values for the 'where' attribute in Element and Question classes.
+    """
     EXECUTE = "execute"
     NOTDP = "notdp"
     NONE = "none"
@@ -23,12 +24,18 @@ class Where(str, Enum):
 
 
 class Grouping(str, Enum):
+    """
+    Allowable values for the 'grouping' attribute in Question class.
+    """
     AUTO = "auto"
     ROWS = "rows"
     COLS = "cols"
 
 
 class Legend(str, Enum):
+    """
+     Allowable values for the 'rowLegend' attribute in Question class.
+    """
     DEFAULT = "default"
     BOTH = "both"
     LEFT = "left"
@@ -36,6 +43,9 @@ class Legend(str, Enum):
 
 
 class RowColChoiceShuffle(str, Enum):
+    """
+     Allowable values for the 'rowShuffle' and 'colShuffle' attributes in Question class.
+    """
     FLIP = "flip"
     RFLIP = "rflip"
     ROTATE = "rotate"
@@ -44,6 +54,9 @@ class RowColChoiceShuffle(str, Enum):
 
 
 class Shuffle(str, Enum):
+    """
+     Allowable values for the 'shuffle' attribute in Question class.
+     """
     NONE = "none"
     ROWS = "rows"
     COLS = "cols"
@@ -51,15 +64,19 @@ class Shuffle(str, Enum):
 
 
 class Sort(str, Enum):
+    """
+     Allowable values for the 'sortChoices', 'sortCols', and 'sortRows' attributes in Question class."""
     NONE = "none"
     ASC = "asc"
     DESC = "DESC"
     SURVEY = "survey"
     REPORT = "report"
 
+# ------------- HELPER FUNCTIONS ------------- #
+
 
 def bool_bit(b: bool | None) -> str | None:
-    """Get a string representation of a boolean value for XML attributes.
+    """Get a string representation of a boolean value for XML attributes. (e.g. "1" or "0").
 
     Converts `True` to "1", `False` to "0", and `None` to `None`.
 
@@ -74,7 +91,7 @@ def bool_bit(b: bool | None) -> str | None:
 
 def str_(s: object | None) -> str | None:
     """
-Convert an object to a string for XML attributes.
+Convert an object to a string for XML attributes. Used within the ATTR_MAP of dataclasses. We use this because the default str() function would convert None to "None", which we don't want in XML attributes.
 
     Args:
         s (object | None): The object to convert to a string.
@@ -86,7 +103,7 @@ Convert an object to a string for XML attributes.
 
 
 def num(n: int | float | None) -> str | None:
-    """Convert a number to a string for XML attributes.
+    """Convert a number to a string for XML attributes. We use this because the default str() function would convert None to "None", which we don't want in XML attributes.
 
     Args:
         n (int | float | None): The number to convert.
@@ -97,7 +114,8 @@ def num(n: int | float | None) -> str | None:
 
 
 def csv(xs) -> str | None:
-    """Convert a collection of values to a comma-separated string for XML attributes.
+    """Convert a collection of values to a comma-separated string for XML attributes. 
+        Generally used for Enum sets, as the XML expects a comma-separated list of values.
 
     Args:
         xs (iterable): An iterable of values to convert.
@@ -113,7 +131,7 @@ def csv(xs) -> str | None:
 
 def _append_children(parent: ET.Element, children) -> None:
     """ 
-    Append child elements to a parent XML element.
+    Append child elements to a parent XML element. Used in Question.to_xml_element() to add rows, cols, and choices.
         Args:
             parent (ET.Element): The parent XML element to which children will be appended.
             children (iterable): An iterable of child elements to append.
@@ -123,24 +141,13 @@ def _append_children(parent: ET.Element, children) -> None:
     for child in children:
         parent.append(child.to_xml_element())
 
+# ------------- GENERIC ELEMENTS ------------- #
+
 
 @dataclass()
 class Element:
     """
-Base class - all questions and elements contain these
-
-Attributes:
-    - TEXT_FIELD: Always `None` for this class, but subclasses may define a text field.
-    - label: Mandatory
-    - disabled: Optional; if `True`, the element is disabled.
-    - randomize: Optional; if `True`, the element is randomized.
-    - style: Optional; a string representing the style of the element.
-    - where: Optional; a set of allowable values (e.g. "execute,survey,report").
-    - alt: Optional; alternative text for the element.
-    - altlabel: Optional; alternative label for the element.
-    - translateable: Optional; indicates if the element is translatable.
-    - id: Optional; an identifier for the element.
-    - sst: Optional; if `True`, indicates that the element is a single-select type.
+    Base class - all questions and elements contain these
 
 
     Methods:
@@ -180,12 +187,22 @@ Attributes:
     }
 
     def to_xml_element(self) -> ET.Element:
+        """ 
+        Converts a given object to an XML element (ElementTree).
+        Uses the class's ATTR_MAP to determine how to convert attributes to XML attributes. 
+        If the class has a TEXT_FIELD defined, that attribute will be used as the inner text of the XML element.
+        If the class has a CHILD_TEXT_MAP defined, those attributes will be added as child elements with text.
+        Returns:
+            ET.Element: The XML element representation of the object.
+            """
         cls = type(self)
+        # Determine the XML tag name and attribute mapping
         tag = getattr(cls, "XML_TAG", cls.__name__.lower())
         amap = getattr(cls, "ATTR_MAP", {})
 
         attrs = {}
 
+        # Convert attributes to XML attributes using the ATTR_MAP
         for py_name, spec in amap.items():
             xml_name, conv = (spec if isinstance(
                 spec, tuple) else (py_name, spec))
@@ -194,6 +211,7 @@ Attributes:
             if out not in (None, ""):
                 attrs[xml_name] = out
 
+        # Create the XML element
         el = ET.Element(tag, attrs)
 
         # If this class declares a TEXT_FIELD, grab that attribute from the object and use it as the XML element text.
@@ -203,7 +221,9 @@ Attributes:
             if txt is not None:
                 el.text = str(txt)
 
+        # If this class declares a CHILD_TEXT_MAP, add those attributes as child elements with text.
         child_text_map = getattr(cls, "CHILD_TEXT_MAP", {})
+        # For each entry in CHILD_TEXT_MAP, create a child element with the specified tag and text.
         for py_name, spec in child_text_map.items():
             child_tag, conv = (spec if isinstance(
                 spec, tuple) else (py_name, spec))
@@ -218,7 +238,11 @@ Attributes:
 @dataclass()
 class Cell(Element):
     """
-    Attributes for <row>, <col> and <choice> elements:
+    Attributes for <row>, <col> and <choice> elements. 
+    These elements can contain text content.
+
+    Methods:
+    - to_xml_element: Converts the object to an XML element
     """
     content: str | None = None
     open: bool | None = None
@@ -267,6 +291,8 @@ class Cell(Element):
 class Question(Element):
     """
     The question attributes apply to <radio>, <select>, <checkbox>, <number>, <float>, <text> and <textarea> elements.
+    Methods:
+    - to_xml_element: Converts the object to an XML element
     """
     # Mandatory elements
     title: str
@@ -333,7 +359,7 @@ class Question(Element):
     def to_xml_element(self) -> ET.Element:
         # 1) Build the base element + title/comment the way Element does
         el = super().to_xml_element()
-
+        # 2) Append rows/cols/choices if they exist
         if hasattr(self, "rows"):
             _append_children(el, getattr(self, "rows"))
         if hasattr(self, "cols"):
@@ -346,66 +372,109 @@ class Question(Element):
 
 @dataclass()
 class Row(Cell):
+    """
+     Attributes for <row> elements. Only need XML_TAG here. 
+     Inherits from Cell, which contains all the attributes and methods.
+     """
     XML_TAG = "row"
 
 
 @dataclass()
 class Col(Cell):
+    """
+     Attributes for <col> elements. Only need XML_TAG here.  
+     Inherits from Cell, which contains all the attributes and methods.
+     """
     XML_TAG = "col"
 
 
 @dataclass()
 class Choice(Cell):
+    """
+     Attributes for <col> elements. Only need XML_TAG here.  
+     Inherits from Cell, which contains all the attributes and methods.
+     """
     XML_TAG = "choice"
+
+# ------------- SPECIFIC QUESTION TYPES ------------- #
 
 
 @dataclass()
 class RadioQuestion(Question):
+    """ Attributes for <radio> questions (single-select). A <radio> question can contain <row> and <col> elements."""
     XML_TAG = "radio"
 
-    rows: tuple[Row, ...] = ()
+    # Mandatory
+    rows: tuple[Row, ...]
+
+    # Optional
     cols: tuple[Col, ...] = ()
 
 
 @dataclass()
 class CheckboxQuestion(Question):
+    """ 
+    Attributes for <checkbox> questions (multi-select)
+    """
     XML_TAG = "checkbox"
     atleast: int = 1
     # atleast: bool = True
-    rows: tuple[Row, ...] = ()
+    # Mandatory
+    rows: tuple[Row, ...]
+
+    # Optional
     cols: tuple[Col, ...] = ()
 
 
 @dataclass()
 class NumberQuestion(Question):
+    """ 
+    Attributes for <number> questions (numeric input).
+    """
     XML_TAG = "number"
+
+    # Optional
     rows: tuple[Row, ...] = ()
     cols: tuple[Col, ...] = ()
     # size: int = 3
 
 
 @dataclass()
-class Float(Question):
+class FloatQuestion(Question):
+    """
+    Attributes for <float> questions (decimal input).
+    """
     XML_TAG = "float"
+
+    # Optional
     rows: tuple[Row, ...] = ()
     cols: tuple[Col, ...] = ()
 
 
 @dataclass()
 class TextQuestion(Question):
+    """
+    Attributes for <text> questions (single-line text input).
+    """
     XML_TAG = "text"
+
+    # Optional
     rows: tuple[Row, ...] = ()
     cols: tuple[Col, ...] = ()
 
 
 @dataclass()
 class TextAreaQuestion(Question):
+    """Attributes for <textarea> questions (multi-line text input)."""
     XML_TAG = "textarea"
+
+    # Optional
     rows: tuple[Row, ...] = ()
     cols: tuple[Col, ...] = ()
 
 
 @dataclass()
 class SelectQuestion(Question):
+    """Attributes for <select> questions (dropdown selection)."""
+    XML_TAG = "select"
     choices: tuple[Choice, ...] = ()
-    pass

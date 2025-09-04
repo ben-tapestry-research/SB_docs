@@ -4,17 +4,17 @@ from question_elements import *
 from logic_elements import *
 
 
-@dataclass(frozen=True)
+@dataclass
 class Note:
     content = str
 
 
-@dataclass(frozen=True)
+@dataclass
 class Suspend:
     pass
 
 
-@dataclass(frozen=True)
+@dataclass
 class Exec:
     content = str
 
@@ -29,3 +29,4 @@ class Block:
         "Loop", "Quota", "GoTo", "Define", "Terminate", "Block"
     ]
     children: tuple[BlockChild, ...] = ()
+
