@@ -228,7 +228,7 @@ def parse_float(float_el: ET.Element) -> FloatQuestion:
         # Mandatory
         label=_attr(float_el, "label"),
         title=_tag_text(float_el, "title"),
-        size=int(_attr(float_el, "size")),
+        size=_int_attr(float_el, "size", 40),
         # Optional
         comment=_tag_text(float_el, "comment"),
         rows=parse_rows(float_el),
@@ -249,7 +249,7 @@ def parse_text(text_el: ET.Element) -> TextQuestion:
         # Mandatory
         label=_attr(text_el, "label"),
         title=_tag_text(text_el, "title"),
-        size=int(_attr(text_el, "size")),
+        size=_int_attr(text_el, "size", 40),
         # Optional
         comment=_tag_text(text_el, "comment"),
         rows=parse_rows(text_el),
@@ -264,7 +264,7 @@ def parse_textarea(textarea_el: ET.Element) -> TextAreaQuestion:
         label=_attr(textarea_el, "label"),
         title=_tag_text(textarea_el, "title"),
         # Optional
-        size=int(_attr(textarea_el, "size")),
+        size=_int_attr(textarea_el, "size", 40),
         comment=_tag_text(textarea_el, "comment"),
         rows=parse_rows(textarea_el),
         cols=parse_cols(textarea_el),
@@ -413,7 +413,7 @@ def parse_quota(quota_el: ET.Element) -> Quota:
 
 def parse_goto(goto_el: ET.Element) -> GoTo:
     return GoTo(
-        label=_attr(goto_el, "label"),
+
         cond=_attr(goto_el, "cond"),
         target=_attr(goto_el, "target")
     )

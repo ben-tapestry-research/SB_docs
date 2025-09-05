@@ -51,7 +51,6 @@ class GoTo:
     """ A <goto> element (skip logic) """
     target: str
     cond: Optional[str] = None
-    target: str
 
 
 @dataclass
