@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "C:/Users/BenAndrews/Tapestry Research/Tapestry_Company - Documents/Tech or tools/Forsta API",
+        "./survey_elements"
+    ]
+}

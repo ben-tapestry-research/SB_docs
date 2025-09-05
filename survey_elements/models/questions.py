@@ -3,74 +3,15 @@ import xml.etree.ElementTree as ET
 from enum import Enum
 from dataclasses import field
 
+from survey_elements.models.enums import (
+    Where, Grouping, Legend, RowColChoiceShuffle, Shuffle, Sort
+)
+from survey_elements.utils.xml_helpers import _append_children
 
 # TODO: information on what part of the question the user can modify
 
 # DEFINITIONS FROM: https://forstasurveys.zendesk.com/hc/en-us/articles/4409469868315-Overview-of-Question-and-Element-Tags
 
-# ------------- ENUMS (for attributes with specific allowable values) ------------- #
-
-class Where(str, Enum):
-    """
-    Allowable values for the 'where' attribute in Element and Question classes.
-    """
-    EXECUTE = "execute"
-    NOTDP = "notdp"
-    NONE = "none"
-    SUMMARY = "summary"
-    SURVEY = "survey"
-    REPORT = "report"
-    DATA = "data"
-
-
-class Grouping(str, Enum):
-    """
-    Allowable values for the 'grouping' attribute in Question class.
-    """
-    AUTO = "auto"
-    ROWS = "rows"
-    COLS = "cols"
-
-
-class Legend(str, Enum):
-    """
-     Allowable values for the 'rowLegend' attribute in Question class.
-    """
-    DEFAULT = "default"
-    BOTH = "both"
-    LEFT = "left"
-    RIGHT = "right"
-
-
-class RowColChoiceShuffle(str, Enum):
-    """
-     Allowable values for the 'rowShuffle' and 'colShuffle' attributes in Question class.
-    """
-    FLIP = "flip"
-    RFLIP = "rflip"
-    ROTATE = "rotate"
-    REVERSE_ROTATE = "reverse-rotate"
-    RROTATE = "rrotate"
-
-
-class Shuffle(str, Enum):
-    """
-     Allowable values for the 'shuffle' attribute in Question class.
-     """
-    NONE = "none"
-    ROWS = "rows"
-    COLS = "cols"
-    CHOICES = "choices"
-
-
-class Sort(str, Enum):
-    """
-     Allowable values for the 'sortChoices', 'sortCols', and 'sortRows' attributes in Question class."""
-    NONE = "none"
-    ASC = "asc"
-    DESC = "DESC"
-    SURVEY = "survey"
-    REPORT = "report"
 
 # ------------- HELPER FUNCTIONS ------------- #
 
@@ -128,18 +69,6 @@ def csv(xs) -> str | None:
     vals = (getattr(x, "value", x) for x in xs)
     return ",".join(str(v) for v in sorted(vals))
 
-
-def _append_children(parent: ET.Element, children) -> None:
-    """ 
-    Append child elements to a parent XML element. Used in Question.to_xml_element() to add rows, cols, and choices.
-        Args:
-            parent (ET.Element): The parent XML element to which children will be appended.
-            children (iterable): An iterable of child elements to append.
-    """
-    if not children:
-        return
-    for child in children:
-        parent.append(child.to_xml_element())
 
 # ------------- GENERIC ELEMENTS ------------- #
 
@@ -399,7 +328,7 @@ class Choice(Cell):
 # ------------- SPECIFIC QUESTION TYPES ------------- #
 
 
-@dataclass()
+@dataclass(kw_only=True)
 class RadioQuestion(Question):
     """ Attributes for <radio> questions (single-select). A <radio> question can contain <row> and <col> elements."""
     XML_TAG = "radio"
@@ -411,7 +340,7 @@ class RadioQuestion(Question):
     cols: tuple[Col, ...] = ()
 
 
-@dataclass()
+@dataclass(kw_only=True)
 class CheckboxQuestion(Question):
     """ 
     Attributes for <checkbox> questions (multi-select)
@@ -426,54 +355,57 @@ class CheckboxQuestion(Question):
     cols: tuple[Col, ...] = ()
 
 
-@dataclass()
+@dataclass(kw_only=True)
 class NumberQuestion(Question):
     """ 
     Attributes for <number> questions (numeric input).
     """
     XML_TAG = "number"
+    size: int | None = None
 
     # Optional
     rows: tuple[Row, ...] = ()
     cols: tuple[Col, ...] = ()
-    # size: int = 3
 
 
-@dataclass()
+@dataclass(kw_only=True)
 class FloatQuestion(Question):
     """
     Attributes for <float> questions (decimal input).
     """
     XML_TAG = "float"
+    size: int | None = None
 
     # Optional
     rows: tuple[Row, ...] = ()
     cols: tuple[Col, ...] = ()
 
 
-@dataclass()
+@dataclass(kw_only=True)
 class TextQuestion(Question):
     """
     Attributes for <text> questions (single-line text input).
     """
     XML_TAG = "text"
+    size: int | None = None
 
     # Optional
     rows: tuple[Row, ...] = ()
     cols: tuple[Col, ...] = ()
 
 
-@dataclass()
+@dataclass(kw_only=True)
 class TextAreaQuestion(Question):
     """Attributes for <textarea> questions (multi-line text input)."""
     XML_TAG = "textarea"
+    size: int | None = None
 
     # Optional
     rows: tuple[Row, ...] = ()
     cols: tuple[Col, ...] = ()
 
 
-@dataclass()
+@dataclass(kw_only=True)
 class SelectQuestion(Question):
     """Attributes for <select> questions (dropdown selection)."""
     XML_TAG = "select"
