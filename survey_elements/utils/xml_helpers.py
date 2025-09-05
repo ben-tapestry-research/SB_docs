@@ -77,3 +77,41 @@ def to_xml_string(el: ET.Element, pretty: bool = False) -> str:
         return minidom.parseString(xml_string).toprettyxml(indent="  ")
     except Exception:
         return xml_string
+
+def _int_attr(el: ET.Element, name: str, default: int) -> int:
+    """ Fetches an integer attribute from an ElementTree element, returning a default if not found or invalid
+    We use this because ET.Element.get() returns str | None, and we want int with a default
+    Args:
+        el (ET.Element): The ElementTree object to search
+        name (str): The name of the attribute to fetch
+        default (int): The default value to return if the attribute is not found or invalid
+        Returns:
+        int: The integer value of the attribute, or the default"""
+    raw = el.get(name)
+    return int(raw) if raw is not None else default
+
+
+def _parse_enum_set(el: ET.Element, attr_name: str, enum_class) -> set:
+    """ 
+    Parses a comma-separated list of enum values from an attribute into a set of enum members
+    e.g. where="execute,survey"  -> {Where.EXECUTE, Where.SURVEY}
+    Args:
+        el (ET.Element): The ElementTree object to search
+        attr_name (str): The name of the attribute to fetch
+        enum_class: The Enum class to use for parsing (e.g. Where)
+        Returns:
+        set: A set of enum members
+    """
+    raw_text = _attr(el, attr_name, "")
+    if not raw_text:
+        return set()
+    # Split up the comma-separated string into its parts
+    parts = [p.strip() for p in raw_text.split(",") if p.strip()]
+    vals = set()
+    # where="execute,survey"  -> {Where("execute"), Where("survey")}
+    for p in parts:
+        try:
+            vals.add(enum_class(p))
+        except ValueError:
+            raise ValueError(f"Invalid value for {attr_name}: '{p}'")
+    return vals

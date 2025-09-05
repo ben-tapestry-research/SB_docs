@@ -64,3 +64,9 @@ class Sort(str, Enum):
     DESC = "DESC"
     SURVEY = "survey"
     REPORT = "report"
+
+class Mode(str, Enum):
+    """ Allowable values for the 'mode' attribute in <style> tags"""
+    INSTEAD = "instead"
+    BEFORE = "before"
+    AFTER = "after"

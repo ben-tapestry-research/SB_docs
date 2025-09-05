@@ -7,38 +7,8 @@ from survey_elements.models.structural import *
 from survey_elements.models.logic import *
 
 from survey_elements.models.enums import *
-from survey_elements.utils.xml_helpers import _attr, _bit, _tag_text
+from survey_elements.utils.xml_helpers import _attr, _tag_text, _parse_enum_set, _bit, _int_attr
 
-# TODO: ensure all attributes / bits are captured - build code to flag??
-
-
-# ------------ HELPER FUNCTIONS -------------
-
-
-def _parse_enum_set(el: ET.Element, attr_name: str, enum_class) -> set:
-    """ 
-    Parses a comma-separated list of enum values from an attribute into a set of enum members
-    e.g. where="execute,survey"  -> {Where.EXECUTE, Where.SURVEY}
-    Args:
-        el (ET.Element): The ElementTree object to search
-        attr_name (str): The name of the attribute to fetch
-        enum_class: The Enum class to use for parsing (e.g. Where)
-        Returns:
-        set: A set of enum members
-    """
-    raw_text = _attr(el, attr_name, "")
-    if not raw_text:
-        return set()
-    # Split up the comma-separated string into its parts
-    parts = [p.strip() for p in raw_text.split(",") if p.strip()]
-    vals = set()
-    # where="execute,survey"  -> {Where("execute"), Where("survey")}
-    for p in parts:
-        try:
-            vals.add(enum_class(p))
-        except ValueError:
-            raise ValueError(f"Invalid value for {attr_name}: '{p}'")
-    return vals
 
 # ------------ ROWS ---------------
 
@@ -79,14 +49,14 @@ def parse_rows(parent: ET.Element) -> tuple[Row, ...]:
         if child.tag == "row":
             rows.append(parse_row(child))
         elif child.tag == "insert":
-            label = child.get("label")
+            label = child.get("source")
             if not label:
                 continue
             d = _DEFINES.get(label)
             if d:
                 rows.extend(d.rows)
             else:
-                raise(f"<insert label='{label}'> not found in defines")
+                raise (f"<insert label='{label}'> not found in defines")
 
     return tuple(rows)
 
@@ -195,7 +165,7 @@ def parse_checkbox(checkbox_el: ET.Element) -> CheckboxQuestion:
         # Mandatory
         label=_attr(checkbox_el, "label"),
         title=_tag_text(checkbox_el, "title"),
-        atleast=int(_attr(checkbox_el, "atleast")),
+        atleast=_int_attr(checkbox_el, "atleast", 1),
         rows=parse_rows(checkbox_el),
         # Optional
         comment=_tag_text(checkbox_el, "comment"),
@@ -317,8 +287,9 @@ def parse_block(block_el: ET.Element) -> Block:
         if child.tag in _PARSERS:
             children.append(element_from_xml_element(child))
         else:
+            continue
             raise ValueError(
-                f"ERROR PARSING BLOCK {block_el.tag}. Found {child.tag} element in a block that does not have a parser")
+                f"ERROR PARSING BLOCK {_attr(block_el, "label")}. Found {child.tag} element in a block that does not have a parser")
     return Block(
         label=_attr(block_el, "label"),
         children=tuple(children)
@@ -337,7 +308,7 @@ def parse_note(note_el: ET.Element) -> Note:
     return Note(content=content)
 
 
-def parse_suspend() -> Suspend:
+def parse_suspend(susp_el: ET.Element) -> Suspend:
     """ 
     Given an ElementTree <suspend> tag, convert into Suspend object.
     Returns:
@@ -381,16 +352,53 @@ def parse_loop(loop_el: ET.Element) -> Loop:
         Returns:
         Loop: The Loop object
     """
+
     children = []
+    looprows: list[Looprow] = []
     for child in loop_el:
         if child.tag in _PARSERS:
             children.append(element_from_xml_element(child))
+        elif child.tag == "looprow":
+            # Find all the loopvars within this looprow
+            vars_x = tuple(Loopvar(
+                name=_attr(v, "name"),
+                value=v.text
+            ) for v in child.findall("loopvar"))
+            looprows.append(Looprow(
+                label=_attr(child, "label"),
+                vars=vars_x
+            ))
         else:
             raise ValueError(
                 f"ERROR PARSING LOOP {loop_el.tag}. Found {child.tag} element in a loop that does not have a parser")
     return Loop(
         label=_attr(loop_el, "label"),
-        children=tuple(children)
+        children=tuple(children),
+        looprows=tuple(looprows)
+    )
+
+
+def parse_loopvar(loopvar_el: ET.Element) -> Loopvar:
+    """ 
+    Given an ElementTree <loopvar> tag, convert into Loopvar object."""
+    return Loopvar(
+        name=_attr(loopvar_el, "name"),
+        value=loopvar_el.text
+    )
+
+
+def parse_looprow(looprow_el: ET.Element) -> Looprow:
+    """ 
+    Given an ElementTree <looprow> tag, convert into Looprow object.
+    Args:
+        looprow_el (ET.Element): The <looprow> tag as ElementTree
+        Returns:
+        Looprow: The Looprow object
+    """
+    vars_x = tuple(parse_loopvar(v) for v in looprow_el.findall("loopvar"))
+    return Looprow(
+        label=_attr(looprow_el, "label"),
+        vars=vars_x
     )
 
 
@@ -399,7 +407,7 @@ def parse_quota(quota_el: ET.Element) -> Quota:
         label=_attr(quota_el, "label"),
         overquota=_attr(quota_el, "overquota"),
         sheet=_attr(quota_el, "sheet"),
-        content=quota_el.text.strip()
+        content=quota_el.text
     )
 
 
@@ -419,6 +427,63 @@ def parse_term(term_el: ET.Element) -> Terminate:
     )
 
 
+def parse_survey(src: str):
+    """ Parse an entire survey XML file into a tuple of Element objects
+    Args:
+    src (str): Path to the XML file
+    Returns:
+    tuple[Element, ...]: Tuple of Element objects"""
+    root = ET.parse(src).getroot()
+    find_defines(root)
+    elements = []
+    for child in root:
+        tag = child.tag
+        if tag in _PARSERS:
+            elements.append(element_from_xml_element(child))
+        else:
+            continue
+            raise ValueError(f"'{tag}' tag found in <survey> - unsupported")
+    return tuple(elements)
+
+
+def parse_res(res_el: ET.Element):
+    """ 
+    Given an ElementTree <res> tag, convert into Res object. The content is the text within the tag.
+    Args:
+        res_el (ET.Element): The <res> tag as ElementTree
+        Returns:
+        Res: The Res object
+    """
+    return Res(
+        label=_attr(res_el, "label"),
+        content=res_el.text
+    )
+
+
+def parse_logic(logic_el: ET.Element) -> Logic:
+    """ 
+    Given an ElementTree <logic> tag, convert into Logic object."""
+    return Logic(
+        label=_attr(logic_el, "label"),
+        uses=_attr(logic_el, "uses")
+    )
+
+
+def parse_style(style_el: ET.Element) -> Style:
+    return Style(
+        name=_attr(style_el, "name"),
+        label=_attr(style_el, "label"),
+        copy=_attr(style_el, "copy"),
+        cond=_attr(style_el, "cond"),
+        rows=_attr(style_el, "rows"),
+        cols=_attr(style_el, "cols"),
+        mode=_parse_enum_set(style_el, "mode", Mode),
+        after=_attr(style_el, "after"),
+        before=_attr(style_el, "before"),
+        withx=_attr(style_el, "with"),
+        wrap=_attr(style_el, "wrap"),
+        content=style_el.text.strip()
+    )
 
 
 # Given an XML tag, find the corresponding parser function
@@ -443,34 +508,61 @@ _PARSERS = {
     "note": parse_note,
     "suspend": parse_suspend,
     "exec": parse_exec,
+    "res": parse_res,
+    "style": parse_style,
 
     # Logic
     "loop": parse_loop,
     "quota": parse_quota,
     "goto": parse_goto,
     "define": parse_define,
-    "term": parse_term
+    "term": parse_term,
+    "logic": parse_logic
 
 }
 
 # Global dictionary of <define> elements by their label (populated by find_defines)
 _DEFINES: dict[str, Define] = {}
 
+# Stack to show current path while parsing (for debugging)
+_PARSE_STACK: List[str] = []
+
+
+def _current_path() -> str:
+    """ Returns a string representing the current path in the XML being parsed, based on the _PARSE_STACK
+     e.g. Parsing -> block(SCREENER) > block(BLK_QC_WEEKEND) > checkbox(QC_WEEKEND)
+    Returns:
+        str: The current path as a string
+    """
+    return " > ".join(_PARSE_STACK) or "<root>"
+
 
 def element_from_xml_element(xml_elm: ET.Element):
     """
     Converts a given XML element into the corresponding object
-    Args:
-        xml_elm: The XML element to convert
-
-    Returns:
-        the corresponding object
     """
     tag = xml_elm.tag
-    if tag not in _PARSERS:
-        raise ValueError(f"{tag} is not a valid tag")
-    else:
-        return _PARSERS[tag](xml_elm)
+    label = _attr(xml_elm, "label", "")
+    # Gets the line number in the XML file where this element is defined (if available)
+   # line = getattr(xml_elm, "sourceline", None)
+    # The entry to push onto the parse stack for tracking. The entry
+    entry = f'<{tag} label="{label}">'
+
+    # push and print progress
+    _PARSE_STACK.append(entry)
+    print(f"Parsing -> {_current_path()}")
+
+    try:
+        if tag not in _PARSERS:
+            raise ValueError(f"{tag} is not a valid tag")
+        result = _PARSERS[tag](xml_elm)
+        print(f"Parsed  <- {_current_path()}")
+        return result
+    except Exception as e:
+        # print a helpful diagnostic and the Python traceback, then re-raise
+        raise ValueError(f"ERROR while parsing {_current_path()}: {e}")
+    finally:
+        _PARSE_STACK.pop()
 
 
 def find_defines(root_el: ET.Element) -> dict[str, Define]:
@@ -479,7 +571,6 @@ def find_defines(root_el: ET.Element) -> dict[str, Define]:
     Args:
         root_el (ET.Element): _description_
     """
-
 
     defs: dict[str, Define] = {}
     for el in root_el.iter():
@@ -496,7 +587,3 @@ def find_defines(root_el: ET.Element) -> dict[str, Define]:
     _DEFINES.clear()
     _DEFINES.update(defs)
     return dict(defs)
-
-
-    # global _DEFINES
-    # _DEFINES = {_attr(d, "label"): d for d in root_el.findall(".//define")}

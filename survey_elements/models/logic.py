@@ -1,13 +1,22 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional, Tuple, TypeAlias
-from typing import Union
 
 
 # Only import types at type-check time to avoid runtime circular imports
 if TYPE_CHECKING:
     from .questions import *
     from .structural import *
+
+@dataclass
+class Loopvar:
+    name: str
+    value: str | None = None
+
+@dataclass
+class Looprow:
+    label: str | None = None
+    vars: tuple[Loopvar, ...] = ()
 
 
 # Define the alias as a STRING so it’s not evaluated at runtime
@@ -17,11 +26,13 @@ LoopChild: TypeAlias = (
     "Loop | Quota | GoTo | Define | Terminate | Block"
 )
 
+
 @dataclass
 class Loop:
     # A Loop can contain any question or structural element as a child.#
     label: str
     children: tuple[LoopChild, ...] = ()
+    looprows: tuple[Looprow, ...] = ()
 
 
 @dataclass
@@ -58,4 +69,10 @@ class Terminate:
     label: str
     cond: str
     content: str
+
+@dataclass
+class Logic:
+    """ A <logic> node"""
+    label: str
+    uses: str
 
