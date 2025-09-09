@@ -12,14 +12,6 @@ if TYPE_CHECKING:
     from .questions import *
 
 
-# Define the alias as a STRING so it’s not evaluated at runtime
-BlockChild: TypeAlias = (
-    "RadioQuestion | CheckboxQuestion | NumberQuestion | FloatQuestion | "
-    "TextQuestion | TextAreaQuestion | SelectQuestion | Suspend | Exec | Note | "
-    "Loop | Quota | GoTo | Define | Terminate | Block"
-)
-
-
 @dataclass(frozen=True)
 class Note:
     """ 
@@ -31,6 +23,7 @@ class Note:
     content: str
 
     def to_xml_element(self) -> ET.Element:
+        """ Convert to an XML element """
         el = ET.Element("note")
         el.text = self.content
         return el
@@ -44,20 +37,22 @@ class Suspend:
      """
 
     def to_xml_element(self) -> ET.Element:
+        """ Convert to an XML element """
         return ET.Element("suspend")
 
 
 @dataclass(frozen=True)
 class Exec:
+    """ 
+    An <exec> tag
+
+    Methods:
+    to_xml_element() -> ET.Element: Convert to an XML element
+    """
     content: str
 
     def to_xml_element(self) -> ET.Element:
-        """ 
-        An <exec> tag
-
-        Methods:
-        to_xml_element() -> ET.Element: Convert to an XML element
-        """
+        """ Convert to an XML element """
         el = ET.Element("exec")
         el.text = self.content
         return el
@@ -72,9 +67,16 @@ class Block:
     to_xml_element() -> ET.Element: Convert to an XML element
     """
     label: str | None = None
+    # Define the alias as a STRING so it’s not evaluated at runtime
+    BlockChild: TypeAlias = (
+        "RadioQuestion | CheckboxQuestion | NumberQuestion | FloatQuestion | "
+        "TextQuestion | TextAreaQuestion | SelectQuestion | Suspend | Exec | Note | "
+        "Loop | Quota | GoTo | Define | Terminate | Block"
+    )
     children: tuple[BlockChild, ...] = ()
 
     def to_xml_element(self) -> ET.Element:
+        """ Convert to an XML element """
         attrs = {}
         attrs["label"] = self.label
         el = ET.Element("block", attrs)
@@ -98,6 +100,7 @@ class Res:
     content: str
 
     def to_xml_element(self) -> ET.Element:
+        """ Convert to an XML element """
         attrs = {
             "label": self.label
         }
@@ -126,6 +129,7 @@ class Style:
     content: str | None = None
 
     def to_xml_element(self) -> ET.Element:
+        """ Convert to an XML element """
         attrs = {}
 
         all_attrs = {
@@ -149,5 +153,24 @@ class Style:
                 attrs[k] = v
 
         el = ET.Element("style", attrs)
+        el.text = self.content
+        return el
+
+
+@dataclass
+class HTML:
+    """ A <html> tag
+    Methods:
+        to_xml_element() -> ET.Element: Convert to an XML element
+    """
+    label: str
+    content: str
+
+    def to_xml_element(self) -> ET.Element:
+        """ Convert to an XML element """
+        attrs = {
+            "label": self.label
+        }
+        el = ET.Element("html", attrs)
         el.text = self.content
         return el

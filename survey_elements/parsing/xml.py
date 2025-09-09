@@ -152,6 +152,21 @@ def parse_radio(radio_el: ET.Element) -> RadioQuestion:
 
     )
 
+def parse_autofill(autofill_el: ET.Element) -> AutoFill:
+    """ 
+    Given an ElementTree <autofill> tag, convert into RadioQuestion object
+    Args:
+        autofill_el (ET.Element): The <autofill> tag as ElementTree
+        Returns:
+        AutoFill: The AutoFill object
+    """
+    return AutoFill(
+        label=_attr(autofill_el, "label"),
+        title=_tag_text(autofill_el, "title"),
+        rows=parse_rows(autofill_el),
+        where=_parse_enum_set(autofill_el, "where", Where)
+    )
+
 
 def parse_checkbox(checkbox_el: ET.Element) -> CheckboxQuestion:
     """ 
@@ -287,7 +302,7 @@ def parse_block(block_el: ET.Element) -> Block:
         if child.tag in _PARSERS:
             children.append(element_from_xml_element(child))
         else:
-            continue
+            # continue
             raise ValueError(
                 f"ERROR PARSING BLOCK {_attr(block_el, "label")}. Found {child.tag} element in a block that does not have a parser")
     return Block(
@@ -328,6 +343,19 @@ def parse_exec(exec_el: ET.Element) -> Exec:
     content = exec_el.text.strip()
     return Exec(content=content)
 
+def parse_html(html_el: ET.Element) -> HTML:
+    """ 
+    Given an ElementTree <html> tag, convert into HTML object. The content is the text within the tag.
+    Args:
+        html_el (ET.Element): The <html> tag as ElementTree
+        Returns:
+        HTML: The HTML object
+    """
+    content = html_el.text
+    return HTML(
+        label=_attr(html_el, "label"),
+        content=content
+        )
 
 # ---------- LOGIC ELEMENTS --------------
 def parse_define(define_el: ET.Element):
@@ -441,7 +469,7 @@ def parse_survey(src: str):
         if tag in _PARSERS:
             elements.append(element_from_xml_element(child))
         else:
-            continue
+            # continue
             raise ValueError(f"'{tag}' tag found in <survey> - unsupported")
     return tuple(elements)
 
@@ -485,7 +513,48 @@ def parse_style(style_el: ET.Element) -> Style:
         content=style_el.text.strip()
     )
 
+def parse_sample_sources(sources_el: ET.Element) -> SampleSources:
+    """ 
+    Given an ElementTree <samplesources> tag, convert into SampleSources object"""
+    return SampleSources(
+        default=_attr(sources_el, "default"),
+        samplesources=tuple(parse_sample_source(s) for s in sources_el.findall("samplesource"))
+    )
 
+def parse_sample_source(source_el: ET.Element) -> SampleSource:
+    """ Given an ElementTree <samplesource> tag, convert into SampleSource object"""
+    return SampleSource(
+        list=_attr(source_el, "list"),
+        title=_tag_text(source_el, "title"),
+        invalid=_tag_text(source_el, "invalid"),
+        completed=_tag_text(source_el, "completed"),
+        vars=tuple(parse_var(v) for v in source_el.findall("var")),
+        exits=tuple(parse_exit(e) for e in source_el.findall("exit"))
+    )
+
+def parse_var(var_el: ET.Element) -> Var:
+    """ Given an ElementTree <var> tag, convert into Var object"""
+    return Var(
+        name=_attr(var_el, "name"),
+        unique=_attr(var_el, "unique"),
+        values=_attr(var_el, "name")
+    )
+
+def parse_exit(exit_el: ET.Element) -> Exit:
+    """ Given an ElementTree <exit> tag, convert into Exit object"""
+    return Exit(
+        cond=_attr(exit_el, "cond"),
+        url=_attr(exit_el, "url"),
+        content=exit_el.text
+    )
+
+def parse_condition(condition_el: ET.Element) -> Condition:
+    """ Given an ElementTree <condition> tag, convert into Condition object"""
+    return Condition(
+        label=_attr(condition_el, "label"),
+        cond=_attr(condition_el, "cond"),
+        content=condition_el.text
+    )
 # Given an XML tag, find the corresponding parser function
 _PARSERS = {
 
@@ -502,6 +571,7 @@ _PARSERS = {
     "float": parse_float,
     "text": parse_text,
     "textarea": parse_textarea,
+    "autofill": parse_autofill,
 
     # Structural
     "block": parse_block,
@@ -510,6 +580,7 @@ _PARSERS = {
     "exec": parse_exec,
     "res": parse_res,
     "style": parse_style,
+    "html": parse_html,
 
     # Logic
     "loop": parse_loop,
@@ -517,7 +588,12 @@ _PARSERS = {
     "goto": parse_goto,
     "define": parse_define,
     "term": parse_term,
-    "logic": parse_logic
+    "logic": parse_logic,
+    "samplesources": parse_sample_sources,
+    "samplesource": parse_sample_source,
+    "var": parse_var,
+    "exit": parse_exit,
+    "condition": parse_condition
 
 }
 

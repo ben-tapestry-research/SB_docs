@@ -341,6 +341,13 @@ class RadioQuestion(Question):
 
 
 @dataclass(kw_only=True)
+class AutoFill(Question):
+    """ Attributes for <autofill> questions] (for piping)."""
+    XML_TAG = "autofill"
+
+    rows: tuple[Row, ...] = ()
+
+@dataclass(kw_only=True)
 class CheckboxQuestion(Question):
     """ 
     Attributes for <checkbox> questions (multi-select)
