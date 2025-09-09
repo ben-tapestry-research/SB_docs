@@ -22,9 +22,13 @@
 .history
 .ionide
 
+
+__pycache__/
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode
 
 OLD STUFF
 example files/survey.xml
 survey_preview.json
 survey_viewer_plus.py
+individual_tester.py
+xml preview.py
