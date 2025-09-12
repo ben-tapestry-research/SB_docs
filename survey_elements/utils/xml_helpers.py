@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-from typing import Iterable
 
 
 def _attr(el: ET, name: str, default="") -> str:
@@ -115,3 +114,46 @@ def _parse_enum_set(el: ET.Element, attr_name: str, enum_class) -> set:
         except ValueError:
             raise ValueError(f"Invalid value for {attr_name}: '{p}'")
     return vals
+
+
+def bool_bit(b: bool | None) -> str | None:
+    """Get a string representation of a boolean value for XML attributes. (e.g. "1" or "0").
+
+    Converts `True` to "1", `False` to "0", and `None` to `None`.
+
+    Args:
+        b (bool | None): The boolean value to convert.
+
+    Returns:
+        str | None: Returns "1" for `True`, "0" for `False`, and `None` for `None`.
+    """
+    return None if b is None else ("1" if b else "0")
+
+
+def str_(s: object | None) -> str | None:
+    """
+Convert an object to a string for XML attributes. Used within the ATTR_MAP of dataclasses. We use this because the default str() function would convert None to "None", which we don't want in XML attributes.
+
+    Args:
+        s (object | None): The object to convert to a string.
+
+    Returns:
+        str | None: Returns `None` if the input is `None`, otherwise returns the string representation of the object.
+    """
+    return None if s is None else str(s)
+
+
+def csv(xs) -> str | None:
+    """Convert a collection of values to a comma-separated string for XML attributes. 
+        Generally used for Enum sets, as the XML expects a comma-separated list of values.
+
+    Args:
+        xs (iterable): An iterable of values to convert.
+    Returns:
+        str | None: Returns a comma-separated string of sorted values, or `None` if the input is empty.
+    """
+    if not xs:
+        return None
+    # emit values; if enums, use .value
+    vals = (getattr(x, "value", x) for x in xs)
+    return ",".join(str(v) for v in sorted(vals))

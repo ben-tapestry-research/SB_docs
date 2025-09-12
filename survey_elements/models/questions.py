@@ -1,76 +1,43 @@
 from dataclasses import dataclass
 import xml.etree.ElementTree as ET
-from enum import Enum
 from dataclasses import field
 
 from survey_elements.models.enums import (
-    Where, Grouping, Legend, RowColChoiceShuffle, Shuffle, Sort
+    Where,
+    Grouping,
+    Legend,
+    RowColChoiceShuffle,
+    Shuffle,
+    Sort,
 )
 from survey_elements.utils.xml_helpers import _append_children
+from survey_elements.utils.xml_helpers import bool_bit, str_, csv
 
-# TODO: information on what part of the question the user can modify
+"""
+Defines the core data structures for survey questions and elements. 
+Each class mirrors a Decipher survey element, with attributes corresponding to XML attributes.
+Each class includes a `to_xml_element` method to convert the dataclass instance to an XML element.
 
-# DEFINITIONS FROM: https://forstasurveys.zendesk.com/hc/en-us/articles/4409469868315-Overview-of-Question-and-Element-Tags
+Definitions: https://forstasurveys.zendesk.com/hc/en-us/articles/4409469868315-Overview-of-Question-and-Element-Tags
 
+Classes:
+- Element: Base class for all survey elements.
+- Cell: Represents <row>, <col>, and <choice> elements.
+- Question: Base class for all question types.
+- Row: Represents a <row> element.
+- Col: Represents a <col> element.
+- Choice: Represents a <choice> element.
+- RadioQuestion: Represents a <radio> question (single-select).
+- CheckboxQuestion: Represents a <checkbox> question (multi-select).
+- NumberQuestion: Represents a <number> question (numeric input).
+- FloatQuestion: Represents a <float> question (decimal input).
+- TextQuestion: Represents a <text> question (single-line text input).
+- TextAreaQuestion: Represents a <textarea> question (multi-line text input).
+- SelectQuestion: Represents a <select> question (dropdown selection).
 
-# ------------- HELPER FUNCTIONS ------------- #
-
-
-def bool_bit(b: bool | None) -> str | None:
-    """Get a string representation of a boolean value for XML attributes. (e.g. "1" or "0").
-
-    Converts `True` to "1", `False` to "0", and `None` to `None`.
-
-    Args:
-        b (bool | None): The boolean value to convert.
-
-    Returns:
-        str | None: Returns "1" for `True`, "0" for `False`, and `None` for `None`.
-    """
-    return None if b is None else ("1" if b else "0")
-
-
-def str_(s: object | None) -> str | None:
-    """
-Convert an object to a string for XML attributes. Used within the ATTR_MAP of dataclasses. We use this because the default str() function would convert None to "None", which we don't want in XML attributes.
-
-    Args:
-        s (object | None): The object to convert to a string.
-
-    Returns:
-        str | None: Returns `None` if the input is `None`, otherwise returns the string representation of the object.
-    """
-    return None if s is None else str(s)
-
-
-def num(n: int | float | None) -> str | None:
-    """Convert a number to a string for XML attributes. We use this because the default str() function would convert None to "None", which we don't want in XML attributes.
-
-    Args:
-        n (int | float | None): The number to convert.
-    Returns:
-        str | None: Returns `None` if the input is `None`, otherwise returns the string representation of the number.
-    """
-    return None if n is None else str(n)
-
-
-def csv(xs) -> str | None:
-    """Convert a collection of values to a comma-separated string for XML attributes. 
-        Generally used for Enum sets, as the XML expects a comma-separated list of values.
-
-    Args:
-        xs (iterable): An iterable of values to convert.
-    Returns:
-        str | None: Returns a comma-separated string of sorted values, or `None` if the input is empty.
-    """
-    if not xs:
-        return None
-    # emit values; if enums, use .value
-    vals = (getattr(x, "value", x) for x in xs)
-    return ",".join(str(v) for v in sorted(vals))
-
-
-# ------------- GENERIC ELEMENTS ------------- #
+Author: Ben Andrews
+Date: August 2025
+"""
 
 
 @dataclass()
@@ -82,6 +49,8 @@ class Element:
     Methods:
     - to_xml_element: Converts the object to an XML element
     """
+
+    # Optional `TEXT_FIELD` (sets `el.text` for simple text nodes)
     # No inner text on Element
     TEXT_FIELD = None
 
@@ -90,7 +59,6 @@ class Element:
     disabled: bool | None = None
     randomize: bool | None = None
     style: str | None = None
-    # allowable values (e.g. "execute,survey,report")
     where: set[Where] = field(default_factory=set)
     alt: str | None = None
     altlabel: str | None = None
@@ -112,18 +80,18 @@ class Element:
         "translateable": str_,
         "id": str_,
         "sst": bool_bit,
-        "cond": str_
+        "cond": str_,
     }
 
     def to_xml_element(self) -> ET.Element:
-        """ 
+        """
         Converts a given object to an XML element (ElementTree).
-        Uses the class's ATTR_MAP to determine how to convert attributes to XML attributes. 
+        Uses the class's ATTR_MAP to determine how to convert attributes to XML attributes.
         If the class has a TEXT_FIELD defined, that attribute will be used as the inner text of the XML element.
         If the class has a CHILD_TEXT_MAP defined, those attributes will be added as child elements with text.
         Returns:
             ET.Element: The XML element representation of the object.
-            """
+        """
         cls = type(self)
         # Determine the XML tag name and attribute mapping
         tag = getattr(cls, "XML_TAG", cls.__name__.lower())
@@ -131,10 +99,9 @@ class Element:
 
         attrs = {}
 
-        # Convert attributes to XML attributes using the ATTR_MAP
+        # Convert attributes to XML attributes using the ATTR_MAP mapping
         for py_name, spec in amap.items():
-            xml_name, conv = (spec if isinstance(
-                spec, tuple) else (py_name, spec))
+            xml_name, conv = spec if isinstance(spec, tuple) else (py_name, spec)
             raw = getattr(self, py_name, None)
             out = conv(raw)
             if out not in (None, ""):
@@ -154,8 +121,7 @@ class Element:
         child_text_map = getattr(cls, "CHILD_TEXT_MAP", {})
         # For each entry in CHILD_TEXT_MAP, create a child element with the specified tag and text.
         for py_name, spec in child_text_map.items():
-            child_tag, conv = (spec if isinstance(
-                spec, tuple) else (py_name, spec))
+            child_tag, conv = spec if isinstance(spec, tuple) else (py_name, spec)
             raw = getattr(self, py_name, None)
             txt = conv(raw)
             if txt not in (None, ""):
@@ -167,12 +133,16 @@ class Element:
 @dataclass()
 class Cell(Element):
     """
-    Attributes for <row>, <col> and <choice> elements. 
+    Attributes for <row>, <col> and <choice> elements.
     These elements can contain text content.
 
     Methods:
     - to_xml_element: Converts the object to an XML element
     """
+
+    # This means inner text becomes the node text.
+    TEXT_FIELD = "content"
+
     content: str | None = None
     open: bool | None = None
     openSize: int | None = None
@@ -213,16 +183,18 @@ class Cell(Element):
         "size": str_,
         "averages": bool_bit,
     }
-    TEXT_FIELD = "content"
 
 
 @dataclass(kw_only=True)
 class Question(Element):
     """
     The question attributes apply to <radio>, <select>, <checkbox>, <number>, <float>, <text> and <textarea> elements.
+
+
     Methods:
     - to_xml_element: Converts the object to an XML element
     """
+
     # Mandatory elements
     title: str
 
@@ -282,7 +254,7 @@ class Question(Element):
 
     CHILD_TEXT_MAP = {
         "title": ("title", str_),  # <title>...</title>
-        "comment": ("comment", str_)  # <comment></comment>
+        "comment": ("comment", str_),  # <comment></comment>
     }
 
     def to_xml_element(self) -> ET.Element:
@@ -302,35 +274,43 @@ class Question(Element):
 @dataclass()
 class Row(Cell):
     """
-     Attributes for <row> elements. Only need XML_TAG here. 
-     Inherits from Cell, which contains all the attributes and methods.
-     """
+    Attributes for <row> elements. Only need XML_TAG here.
+    Inherits from Cell, which contains all the attributes and methods.
+    """
+
     XML_TAG = "row"
 
 
 @dataclass()
 class Col(Cell):
     """
-     Attributes for <col> elements. Only need XML_TAG here.  
-     Inherits from Cell, which contains all the attributes and methods.
-     """
+    Attributes for <col> elements. Only need XML_TAG here.
+    Inherits from Cell, which contains all the attributes and methods.
+    """
+
     XML_TAG = "col"
 
 
 @dataclass()
 class Choice(Cell):
     """
-     Attributes for <col> elements. Only need XML_TAG here.  
-     Inherits from Cell, which contains all the attributes and methods.
-     """
+    Attributes for <col> elements. Only need XML_TAG here.
+    Inherits from Cell, which contains all the attributes and methods.
+    """
+
     XML_TAG = "choice"
+
 
 # ------------- SPECIFIC QUESTION TYPES ------------- #
 
 
 @dataclass(kw_only=True)
 class RadioQuestion(Question):
-    """ Attributes for <radio> questions (single-select). A <radio> question can contain <row> and <col> elements."""
+    """
+    Attributes for <radio> questions (single-select). A <radio> question can contain <row> and <col> elements.
+    https://forstasurveys.zendesk.com/hc/en-us/articles/4409476975899-Single-Select-Question-XML
+    """
+
     XML_TAG = "radio"
 
     # Mandatory
@@ -342,19 +322,24 @@ class RadioQuestion(Question):
 
 @dataclass(kw_only=True)
 class AutoFill(Question):
-    """ Attributes for <autofill> questions] (for piping)."""
+    """
+    Attributes for <autofill> questions] (for piping).
+    """
+
     XML_TAG = "autofill"
 
     rows: tuple[Row, ...] = ()
 
+
 @dataclass(kw_only=True)
 class CheckboxQuestion(Question):
-    """ 
-    Attributes for <checkbox> questions (multi-select)
     """
+    Attributes for <checkbox> questions (multi-select)
+    https://forstasurveys.zendesk.com/hc/en-us/articles/4409476958107-Multi-Select-Question-XML
+    """
+
     XML_TAG = "checkbox"
     atleast: int = 1
-    # atleast: bool = True
     # Mandatory
     rows: tuple[Row, ...]
 
@@ -364,9 +349,11 @@ class CheckboxQuestion(Question):
 
 @dataclass(kw_only=True)
 class NumberQuestion(Question):
-    """ 
-    Attributes for <number> questions (numeric input).
     """
+    Attributes for <number> questions (numeric input).
+    https://forstasurveys.zendesk.com/hc/en-us/articles/4409469867291-Number-Element-XML
+    """
+
     XML_TAG = "number"
     size: int | None = None
 
@@ -379,7 +366,9 @@ class NumberQuestion(Question):
 class FloatQuestion(Question):
     """
     Attributes for <float> questions (decimal input).
+    https://forstasurveys.zendesk.com/hc/en-us/articles/4409461339291-Float-Question-Attributes
     """
+
     XML_TAG = "float"
     size: int | None = None
 
@@ -392,7 +381,9 @@ class FloatQuestion(Question):
 class TextQuestion(Question):
     """
     Attributes for <text> questions (single-line text input).
+    https://forstasurveys.zendesk.com/hc/en-us/articles/4409476985755-Text-Question-XML
     """
+
     XML_TAG = "text"
     size: int | None = None
 
@@ -403,7 +394,11 @@ class TextQuestion(Question):
 
 @dataclass(kw_only=True)
 class TextAreaQuestion(Question):
-    """Attributes for <textarea> questions (multi-line text input)."""
+    """
+    Attributes for <textarea> questions (multi-line text input).
+    https://forstasurveys.zendesk.com/hc/en-us/articles/4409476986651-TextArea-Question-Attributes
+    """
+
     XML_TAG = "textarea"
     size: int | None = None
 
@@ -414,6 +409,10 @@ class TextAreaQuestion(Question):
 
 @dataclass(kw_only=True)
 class SelectQuestion(Question):
-    """Attributes for <select> questions (dropdown selection)."""
+    """
+    Attributes for <select> questions (dropdown selection).
+    https://forstasurveys.zendesk.com/hc/en-us/articles/4409461334299-Dropdown-Menu-Question-XML
+    """
+
     XML_TAG = "select"
     choices: tuple[Choice, ...] = ()

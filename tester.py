@@ -1,5 +1,5 @@
 from pathlib import Path
-from survey_elements.parsing.xml import parse_survey
+from parsing.xml_parser import parse_survey
 from survey_elements.utils.xml_helpers import to_xml_string
 
 xml_path = Path("example files") / "survey.xml"

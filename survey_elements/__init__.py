@@ -6,11 +6,11 @@ from .models.enums import (
 from .models.questions import (
     Element, Cell, Question, Row, Col, Choice,
     RadioQuestion, CheckboxQuestion, NumberQuestion, FloatQuestion,
-    TextQuestion, TextAreaQuestion, SelectQuestion,
+    TextQuestion, TextAreaQuestion, SelectQuestion, 
 )
 from .models.structural import Note, Suspend, Exec, Block
 from .models.logic import Loop, Quota, GoTo, Define, Terminate
-from .parsing.xml import element_from_xml_element, find_defines
+from .parsing.xml_parser import element_from_xml_element, find_defines
 from .utils.xml_helpers import to_xml_string
 
 __all__ = [
