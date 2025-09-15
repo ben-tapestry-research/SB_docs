@@ -1,141 +1,104 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<survey 
-  alt="XML Upload Test"
-  browserDupes="safe"
-  builder:cname="surveys.tapestryresearch.com"
-  builder:wizardCompleted="1"
-  builderCompatible="1"
-  compat="154"
-  delphi="1"
-  displayOnError="all"
-  extraVariables="source,record,decLang,list,userAgent"
-  fir="on"
-  html:showNumber="0"
-  lang="uk"
-  mobile="compat"
-  mobileDevices="smartphone,tablet,desktop"
-  name="Tapestry Research"
-  secure="1"
-  setup="term,decLang,quota,time"
-  ss:accordionDisplay="0"
-  ss:customCSS="Tapestry_03_08_2023"
-  ss:disableBackButton="1"
-  ss:enableNavigation="0"
-  ss:hideProgressBar="0"
-  ss:listDisplay="1"
-  ss:logoAlt="Logo"
-  ss:logoFile="selfserve/2222/logo_a2a001390fe4dc2ce73e6e195e691697.png"
-  ss:logoPosition="middle"
-  state="testing"
-  theme="company/rebranding-themes">
+<survey xmlns:builder="http://decipherinc.com/builder" xmlns:ss="http://decipherinc.com/ss" xmlns:atm1d="http://decipherinc.com/atm1d" xmlns:oe_check="http://decipherinc.com/oe_check" xmlns:html="http://decipherinc.com/html" xmlns:lucint="http://decipherinc.com/lucint" alt="XML Upload Test" browserDupes="safe" builder:cname="surveys.tapestryresearch.com" builder:wizardCompleted="1" builderCompatible="1" compat="154" delphi="1" displayOnError="all" extraVariables="source,record,decLang,list,userAgent" fir="on" html:showNumber="0" lang="uk" mobile="compat" mobileDevices="smartphone,tablet,desktop" name="Tapestry Research" secure="1" setup="term,decLang,quota,time" ss:accordionDisplay="0" ss:customCSS="Tapestry_03_08_2023" ss:disableBackButton="1" ss:enableNavigation="0" ss:hideProgressBar="0" ss:listDisplay="1" ss:logoAlt="Logo" ss:logoFile="selfserve/2222/logo_a2a001390fe4dc2ce73e6e195e691697.png" ss:logoPosition="middle" state="testing" theme="company/rebranding-themes" id="survey">
+  <res label="Help" id="YgrEk">Help m!!</res>
+  <res label="Privacy_Policy" id="IMVw8">Privacy Policy</res>
+  <res label="sys_continue" id="Opmpu"/>
+  <res label="sys_back" id="XcVKq"/>
+  <res label="sys_finish" id="qHYAj">Finish</res>
+  <res label="ProceedText" id="PVwUv">Click the "&gt;&gt;" button to proceed.</res>
+  <res label="PrevText" id="yCCJl">Previous</res>
+  <res label="NextText" id="oKvyE">Next</res>
+  <res label="SP1" id="pPlSs">Please select one answer only.</res>
+  <res label="MP1" id="XZqc7">Please select all that apply.</res>
+  <res label="OE1" id="IQJqW">Please write your answer in the box below.</res>
+  <res label="CS1" id="GHn9i">Please select one answer for each item.</res>
+  <res label="N1" id="T6TKg">Please enter a number in the box below.</res>
+  <res label="less" id="YcFGE">Please provide a bit more detail</res>
+  <res label="enough" id="jYNYd">This is very good information</res>
+  <res label="more" id="NWwFh">Oh wow! This is great!</res>
+  <logic label="Gibberish_Check" oe_check:gibberishThreshold="85" uses="oe_check.2" id="c3O2d"/>
+  <style cond="1" name="survey.respview.footer.support" id="nfLP7">
+&lt;div id="footer-logo" style="text-align: center; width: 100%; height: 60px; background-color: #221b4f"&gt;
+    &lt;br /&gt;
+    &lt;img src="https://uk.focusvision.com/survey/selfserve/2222/250424/Footer.png" style="background-color: #221b4f"
+        width="150px" height="38px" /&gt;
+&lt;/div&gt;
 
-<res label="Help">Help</res>
-<res label="Privacy_Policy">Privacy Policy</res>
-<res label="sys_continue"/>
-<res label="sys_back"/>
-<res label="sys_finish">Finish</res>
-<res label="ProceedText">Click the "&gt;&gt;" button to proceed.</res>
-<res label="PrevText">Previous</res>
-<res label="NextText">Next</res>
-<res label="SP1">Please select one answer only.</res>
-<res label="MP1">Please select all that apply.</res>
-<res label="OE1">Please write your answer in the box below.</res>
-<res label="CS1">Please select one answer for each item.</res>
-<res label="N1">Please enter a number in the box below.</res>
-<res label="less">Please provide a bit more detail</res>
-<res label="enough">This is very good information</res>
-<res label="more">Oh wow! This is great!</res>
-<logic label="Gibberish_Check" oe_check:gibberishThreshold="85" uses="oe_check.2"/>
-<style cond="1" name="survey.respview.footer.support"><![CDATA[
-<div id="footer-logo" style="text-align: center; width: 100%; height: 60px; background-color: #221b4f">
-    <br />
-    <img src="https://uk.focusvision.com/survey/selfserve/2222/250424/Footer.png" style="background-color: #221b4f"
-        width="150px" height="38px" />
-</div>
-
-<div id="footer-links" style="text-align: center; padding-top: 10px;" data-mce-style="text-align: center;">
-    <a href="https://uk.focusvision.com/survey/selfserve/2222/250424/Privacy_Notice_for_research_participants_v1.6.htm"
+&lt;div id="footer-links" style="text-align: center; padding-top: 10px;" data-mce-style="text-align: center;"&gt;
+    &lt;a href="https://uk.focusvision.com/survey/selfserve/2222/250424/Privacy_Notice_for_research_participants_v1.6.htm"
         target="_blank" rel="noopener"
         data-mce-href="https://uk.focusvision.com/survey/selfserve/2222/250424/Privacy_Notice_for_research_participants_v1.6.htm"
-        data-mce-selected="inline-boundary">${res.Privacy_Policy}</a>
-</div>
-]]></style>
-<suspend/>
-
-<logic label="ln1" lucint:integration="SHA-1" lucint:integration_key="8f5d308257d34bc580c482868ce6b7cb" uses="lucint.1">
-  <title>Cint / Lucid Secure Sample</title></logic>
-<samplesources default="0">
-  <samplesource list="134">
-    <title>Prodege</title>
-    <invalid>You are missing information in the URL. Please verify the URL with the original invite.</invalid>
-    <completed>It seems you have already completed this survey.</completed>
-    <var name="transaction_id" unique="1"/>
-    <exit cond="terminated" url="https://pod.prodegemr.com/prodegemr/unsigned-transaction-completion?apik=PAT!HMpwEa8t$I&amp;transaction_id=${transaction_id}&amp;completion_type=3"/>
-    <exit cond="overquota" url="https://pod.prodegemr.com/prodegemr/unsigned-transaction-completion?apik=PAT!HMpwEa8t$I&amp;transaction_id=${transaction_id}&amp;completion_type=2"/>
-    <exit cond="qualified" url="https://pod.prodegemr.com/prodegemr/unsigned-transaction-completion?apik=PAT!HMpwEa8t$I&amp;transaction_id=${transaction_id}&amp;completion_type=1"/>
-  </samplesource>
-
-  <samplesource keyring="sys/dynata" list="101" sign="out,in">
-    <title>Dynata</title>
-    <invalid>You are missing information in the URL. Please verify the URL with the original invite.</invalid>
-    <completed>It seems you have already entered this survey.</completed>
-    <var name="psid" unique="1"/>
-    <exit cond="terminated" url="https://dkr1.ssisurveys.com/projects/end?rst=2&amp;psid=${psid}&amp;_d=${gv.survey.path}"/>
-    <exit cond="overquota" url="https://dkr1.ssisurveys.com/projects/end?rst=3&amp;psid=${psid}&amp;_d=${gv.survey.path}"/>
-    <exit cond="qualified" url="https://dkr1.ssisurveys.com/projects/end?rst=1&amp;psid=${psid}&amp;_d=${gv.survey.path}"/>
-  </samplesource>
-
-  <samplesource keyring="sys/ps" list="127" sign="out,in">
-    <title>Pure Spectrum</title>
-    <invalid>You are missing information in the URL. Please verify the URL with the original invite.</invalid>
-    <completed>It seems you have already entered this survey.</completed>
-    <var name="transaction_id" unique="1"/>
-    <var name="supplier_id"/>
-    <var name="PSID"/>
-    <exit cond="terminated" url="https://spectrumsurveys.com/surveydone?st=18&amp;transaction_id=${transaction_id}"/>
-    <exit cond="overquota" url="https://spectrumsurveys.com/surveydone?st=17&amp;transaction_id=${transaction_id}"/>
-    <exit cond="qualified" url="https://spectrumsurveys.com/surveydone?st=21&amp;transaction_id=${transaction_id}"/>
-  </samplesource>
-
-  <samplesource keyring="everyone-sez" list="182" sign="out,in">
-    <title>EveryoneSez</title>
-    <invalid>You are missing information in the URL. Please verify the URL with the original invite.</invalid>
-    <completed>It seems you have already entered this survey.</completed>
-    <var name="rid" unique="1"/>
-    <var name="co"/>
-    <var name="boost" required="1" values="0,1"/>
-    <exit cond="terminated" url="https://router.everyonesez.com/redirect_in.php?mp=100&amp;dest=8&amp;rs=t&amp;pid=${rid}&amp;l=${int(preciseTimeSpent())/60}">Thank you for taking our survey.</exit>
-    <exit cond="qualified" url="https://router.everyonesez.com/redirect_in.php?mp=100&amp;dest=8&amp;rs=c&amp;pid=${rid}&amp;c=1.25&amp;l=${int(preciseTimeSpent())/60}">Thank you for taking our survey. Your efforts are greatly appreciated!</exit>
-    <exit cond="overquota" url="https://router.everyonesez.com/redirect_in.php?mp=100&amp;dest=8&amp;rs=oq&amp;pid=${rid}&amp;l=${int(preciseTimeSpent())/60}">Thank you for taking our survey.</exit>
-  </samplesource>
-
-  <samplesource list="139">
-    <title>Lucid SHA-1</title>
-    <invalid>You are missing information in the URL. Please verify the URL with the original invite.</invalid>
-    <completed>It seems you have already entered this survey.</completed>
-    <var name="RID" unique="1"/>
-    <var name="boost" required="1" values="0,1"/>
-    <exit cond="qualified" url="https://www.samplicio.us/s/ClientCallBack.aspx?RIS=10&amp;RID=${RID}&amp;hash=${p.url_hash}"/>
-    <exit cond="terminated and hasMarker('QCFailed')" url="https://samplicio.us/s/ClientCallBack.aspx?RIS=30&amp;RID=${RID}"/>
-    <exit cond="terminated" url="https://www.samplicio.us/s/ClientCallBack.aspx?RIS=20&amp;RID=${RID}"/>
-    <exit cond="overquota" url="https://www.samplicio.us/s/ClientCallBack.aspx?RIS=40&amp;RID=${RID}"/>
-  </samplesource>
-
-  <samplesource list="0">
-    <title>Open Survey</title>
-    <invalid>You are missing information in the URL. Please verify the URL with the original invite.</invalid>
-    <completed>It seems you have already entered this survey.</completed>
-    <var name="co"/>
-    <var name="boost" required="1" values="0,1"/>
-    <exit cond="terminated">Thank you for taking our survey.</exit>
-    <exit cond="qualified">Thank you for taking our survey. Your efforts are greatly appreciated!</exit>
-    <exit cond="overquota">Thank you for taking our survey.</exit>
-  </samplesource>
-</samplesources>
-
-<suspend/>
-
-<exec when="init">
+        data-mce-selected="inline-boundary"&gt;${res.Privacy_Policy}&lt;/a&gt;
+&lt;/div&gt;
+</style>
+  <suspend id="kJpLA"/>
+  <logic label="ln1" lucint:integration="SHA-1" lucint:integration_key="8f5d308257d34bc580c482868ce6b7cb" uses="lucint.1" id="LnSLZ">
+    <title id="wUk5L">Cint / Lucid Secure Sample</title>
+  </logic>
+  <samplesources default="0" id="LYUNc">
+    <samplesource list="134" id="dqOyS">
+      <title id="h9QUV">Prodege</title>
+      <invalid id="JAgem">You are missing information in the URL. Please verify the URL with the original invite.</invalid>
+      <completed id="SeEhI">It seems you have already completed this survey.</completed>
+      <var name="transaction_id" unique="1" id="KDqYF"/>
+      <exit cond="terminated" url="https://pod.prodegemr.com/prodegemr/unsigned-transaction-completion?apik=PAT!HMpwEa8t$I&amp;transaction_id=${transaction_id}&amp;completion_type=3" id="ESEmV"/>
+      <exit cond="overquota" url="https://pod.prodegemr.com/prodegemr/unsigned-transaction-completion?apik=PAT!HMpwEa8t$I&amp;transaction_id=${transaction_id}&amp;completion_type=2" id="PUyW8"/>
+      <exit cond="qualified" url="https://pod.prodegemr.com/prodegemr/unsigned-transaction-completion?apik=PAT!HMpwEa8t$I&amp;transaction_id=${transaction_id}&amp;completion_type=1" id="bOhQ4"/>
+    </samplesource>
+    <samplesource keyring="sys/dynata" list="101" sign="out,in" id="X3BG5">
+      <title id="EIp8v">Dynata</title>
+      <invalid id="pLU5U">You are missing information in the URL. Please verify the URL with the original invite.</invalid>
+      <completed id="Fusfx">It seems you have already entered this survey.</completed>
+      <var name="psid" unique="1" id="bqQKt"/>
+      <exit cond="terminated" url="https://dkr1.ssisurveys.com/projects/end?rst=2&amp;psid=${psid}&amp;_d=${gv.survey.path}" id="wjhfC"/>
+      <exit cond="overquota" url="https://dkr1.ssisurveys.com/projects/end?rst=3&amp;psid=${psid}&amp;_d=${gv.survey.path}" id="TTlSY"/>
+      <exit cond="qualified" url="https://dkr1.ssisurveys.com/projects/end?rst=1&amp;psid=${psid}&amp;_d=${gv.survey.path}" id="PDOT8"/>
+    </samplesource>
+    <samplesource keyring="sys/ps" list="127" sign="out,in" id="ouZ30">
+      <title id="cQ0Ab">Pure Spectrum</title>
+      <invalid id="qO4c3">You are missing information in the URL. Please verify the URL with the original invite.</invalid>
+      <completed id="VERHk">It seems you have already entered this survey.</completed>
+      <var name="transaction_id" unique="1" id="phXYW"/>
+      <var name="supplier_id" id="M4JBk"/>
+      <var name="PSID" id="HoWFJ"/>
+      <exit cond="terminated" url="https://spectrumsurveys.com/surveydone?st=18&amp;transaction_id=${transaction_id}" id="Eh8TU"/>
+      <exit cond="overquota" url="https://spectrumsurveys.com/surveydone?st=17&amp;transaction_id=${transaction_id}" id="q1s4g"/>
+      <exit cond="qualified" url="https://spectrumsurveys.com/surveydone?st=21&amp;transaction_id=${transaction_id}" id="Ymb25"/>
+    </samplesource>
+    <samplesource keyring="everyone-sez" list="182" sign="out,in" id="iFfTB">
+      <title id="RXCTX">EveryoneSez</title>
+      <invalid id="nE9vU">You are missing information in the URL. Please verify the URL with the original invite.</invalid>
+      <completed id="WJRhk">It seems you have already entered this survey.</completed>
+      <var name="rid" unique="1" id="JCQTk"/>
+      <var name="co" id="pStdq"/>
+      <var name="boost" required="1" values="0,1" id="RY3vE"/>
+      <exit cond="terminated" url="https://router.everyonesez.com/redirect_in.php?mp=100&amp;dest=8&amp;rs=t&amp;pid=${rid}&amp;l=${int(preciseTimeSpent())/60}" id="IambU">Thank you for taking our survey.</exit>
+      <exit cond="qualified" url="https://router.everyonesez.com/redirect_in.php?mp=100&amp;dest=8&amp;rs=c&amp;pid=${rid}&amp;c=1.25&amp;l=${int(preciseTimeSpent())/60}" id="RswfS">Thank you for taking our survey. Your efforts are greatly appreciated!</exit>
+      <exit cond="overquota" url="https://router.everyonesez.com/redirect_in.php?mp=100&amp;dest=8&amp;rs=oq&amp;pid=${rid}&amp;l=${int(preciseTimeSpent())/60}" id="rZFsK">Thank you for taking our survey.</exit>
+    </samplesource>
+    <samplesource list="139" id="biomr">
+      <title id="cG0hq">Lucid SHA-1</title>
+      <invalid id="XsbOR">You are missing information in the URL. Please verify the URL with the original invite.</invalid>
+      <completed id="X5frt">It seems you have already entered this survey.</completed>
+      <var name="RID" unique="1" id="wvIZ8"/>
+      <var name="boost" required="1" values="0,1" id="l2LNp"/>
+      <exit cond="qualified" url="https://www.samplicio.us/s/ClientCallBack.aspx?RIS=10&amp;RID=${RID}&amp;hash=${p.url_hash}" id="S8cwZ"/>
+      <exit cond="terminated and hasMarker('QCFailed')" url="https://samplicio.us/s/ClientCallBack.aspx?RIS=30&amp;RID=${RID}" id="JQ05l"/>
+      <exit cond="terminated" url="https://www.samplicio.us/s/ClientCallBack.aspx?RIS=20&amp;RID=${RID}" id="ORW5X"/>
+      <exit cond="overquota" url="https://www.samplicio.us/s/ClientCallBack.aspx?RIS=40&amp;RID=${RID}" id="DijTH"/>
+    </samplesource>
+    <samplesource list="0" id="vSJIk">
+      <title id="sgViy">Open Survey</title>
+      <invalid id="XXoug">You are missing information in the URL. Please verify the URL with the original invite.</invalid>
+      <completed id="esgcA">It seems you have already entered this survey.</completed>
+      <var name="co" id="TWX9Q"/>
+      <var name="boost" required="1" values="0,1" id="oRe9E"/>
+      <exit cond="terminated" id="XCjLN">Thank you for taking our survey.</exit>
+      <exit cond="qualified" id="cnd8q">Thank you for taking our survey. Your efforts are greatly appreciated!</exit>
+      <exit cond="overquota" id="heyaZ">Thank you for taking our survey.</exit>
+    </samplesource>
+  </samplesources>
+  <suspend id="JMMqR"/>
+  <exec when="init" id="sMskg">
 # SINGLE: clearQ(QUESTION_ID, "sp")
 # MULTI: clearQ(QUESTION_ID, "mp")
 def clearQ(qid, t):
@@ -298,9 +261,8 @@ def keep_at_end_of_group(question, target_group, code_label):
             all_indices.append(index_to_move)
     question.rows.order = all_indices
 </exec>
-
-<style name="respview.client.css"><![CDATA[
-<style type="text/css">
+  <style name="respview.client.css" id="bQ1NU">
+&lt;style type="text/css"&gt;
 
 /* ******** LOGO STYLING ******** */
 .logo-img {
@@ -325,47 +287,28 @@ def keep_at_end_of_group(question, target_group, code_label):
     text-align: center;
 }
 
-   </style>
-]]></style>
-
-<textarea 
-  label="Q1"
-  size="40">
-  <title>Please provide your input</title>
-</textarea>
-
-<suspend/>
-<number 
-  label="STD_AGE"
-  optional="0"
-  size="25"
-  verify="range(0,99)">
-  <title>What is your age?</title>
-  <comment>${res.N1}</comment>
-</number>
-
-<suspend/>
-
-<radio 
-  label="STD_GENDER"
-  atm1d:showInput="0"
-  atm1d:viewMode="Tiled"
-  ss:listDisplay="1"
-  uses="atm1d.11">
-  <title>Are you male or female?</title>
-  <comment>${res.SP1}</comment>
-  <row label="r1">Male</row>
-  <row label="r2">Female</row>
-</radio>
-
-<suspend/>
-
-<radio 
-  label="DUM_AGE"
-  where="execute,survey,report">
-  <title>Demography: Age</title>
-  <comment>${res.SP1}</comment>
-  <exec>
+   &lt;/style&gt;
+</style>
+  <textarea label="Q1" size="40" id="os50l">
+    <title id="MEtbh">Please provide your input</title>
+  </textarea>
+  <suspend id="ZTL28"/>
+  <number label="STD_AGE" optional="0" size="25" verify="range(0,99)" id="uqTQw">
+    <title id="R0aFq">What is your age?</title>
+    <comment id="mAaZo">${res.N1}</comment>
+  </number>
+  <suspend id="SqouK"/>
+  <radio label="STD_GENDER" atm1d:showInput="0" atm1d:viewMode="Tiled" ss:listDisplay="1" uses="atm1d.11" id="gQaWP">
+    <title id="y1J4X">Are you male or female?</title>
+    <comment id="yZaI2">${res.SP1}</comment>
+    <row label="r1" id="JChmg">Male</row>
+    <row label="r2" id="omCnj">Female</row>
+  </radio>
+  <suspend id="EJ9lW"/>
+  <radio label="DUM_AGE" where="execute,survey,report" id="gBSLM">
+    <title id="QL1eE">Demography: Age</title>
+    <comment id="ixPkQ">${res.SP1}</comment>
+    <exec id="pUx3H">
 if STD_AGE.check('18-24'):
     thisQuestion.val = thisQuestion.r1.index
 elif STD_AGE.check('25-34'):
@@ -379,31 +322,20 @@ elif STD_AGE.check('55-64'):
 else:
     thisQuestion.val = thisQuestion.r99.index
   </exec>
-
-  <row label="r1">18-24</row>
-  <row label="r2">25-34</row>
-  <row label="r3">35-44</row>
-  <row label="r4">45-54</row>
-  <row label="r5">55-64</row>
-  <row label="r99">None of These</row>
-</radio>
-
-<suspend/>
-
-<radio 
-  label="STD_GENDER_ALT_A"
-  atm1d:showInput="0"
-  atm1d:viewMode="Tiled"
-  ss:listDisplay="1"
-  uses="atm1d.11">
-  <title>Which gender do you identify as?</title>
-  <comment>${res.SP1}</comment>
-  <row label="r1">Male</row>
-  <row label="r2">Female</row>
-  <row label="r3">Other</row>
-</radio>
-
-<suspend/>
-
-
+    <row label="r1" id="HHWyQ">18-24</row>
+    <row label="r2" id="Mv59f">25-34</row>
+    <row label="r3" id="fB2B0">35-44</row>
+    <row label="r4" id="JMaeM">45-54</row>
+    <row label="r5" id="XXvk3">55-64</row>
+    <row label="r99" id="WLZlO">None of These</row>
+  </radio>
+  <suspend id="hOvqY"/>
+  <radio label="STD_GENDER_ALT_A" atm1d:showInput="0" atm1d:viewMode="Tiled" ss:listDisplay="1" uses="atm1d.11" id="paijS">
+    <title id="hu9R7">Which gender do you identify as?</title>
+    <comment id="MwIZ0">${res.SP1}</comment>
+    <row label="r1" id="YBO2v">Male</row>
+    <row label="r2" id="jgQoc">Female</row>
+    <row label="r3" id="NmLIV">Other</row>
+  </radio>
+  <suspend id="PHDxZ"/>
 </survey>

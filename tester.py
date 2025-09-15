@@ -55,7 +55,20 @@ def parse_beacon_error_body(body) -> str:
     # as-is
     return raw
 
-# download_project_file(project_path, "xml")
+
+
+
+
+
+
+
+
+
+
+
+
+
+download_project_file(project_path, "xml")
 try:
     upload_response = upload_project_file(project_path, "xml/xml_upload_XML Upload Test_data_confidential.xml")
 except BeaconAPIException as e:
