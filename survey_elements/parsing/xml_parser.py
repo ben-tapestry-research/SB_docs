@@ -534,17 +534,17 @@ def parse_term(term_el: ET.Element) -> Terminate:
     )
 
 
-def parse_survey(src: str) -> tuple[Element, ...]:
+def parse_survey(root: ET.Element) -> tuple[Element, ...]:
     """
     Parse an entire survey XML file into a tuple of Element objects ### (this is for testing at the moment - not used) ####
     
     Args:
-        src (str): Path to the XML file
+        root (ET): XML ET root
     Returns:
         tuple[Element, ...]: Tuple of Element objects
     """
     # Load and parse the XML file
-    root = ET.parse(src).getroot()
+    # root = ET.parse(src).getroot()
     # Find all <define> elements and register them
     find_defines(root)
     elements = []
