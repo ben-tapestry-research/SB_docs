@@ -1,79 +1,104 @@
-from api.forsta_api_utils import download_project_file, upload_project_file
+from decipher.beacon import api
 from decipher.beacon import BeaconAPIException
-import json
+from pathlib import Path
+from api.forsta_api_utils import upload_project_file
 
-from xml.etree import ElementTree as ET
-project_path = '/selfserve/2222/xml_upload'
+def put_multipart(api, name: str, file_path: str, extra_fields: dict | None = None, content_type: str = "application/xml"):
+    """
+    PUT /api/v1/{name} with multipart/form-data
+    Part 'contents' carries the file; optional extra form fields via data=.
+    """
+    api._ensureKey()  # initialize host/key like do()
 
+    url = f"{api.host}/api/{api.version}/{name}"
+    headers = {}
+    headers.update(api._requestAuthHeaders)  # x-apikey (+ Cookie for session keys)
+    headers.update(api.headers)              # x-requested-with, etc.
+    # DO NOT set Content-Type; requests will set it with the boundary
 
-def parse_beacon_error_body(body) -> str:
-    # normalize to text
-    if isinstance(body, (bytes, bytearray)):
-        raw = body.decode("utf-8", errors="replace")
-    elif isinstance(body, str):
-        raw = body
-    else:
-        return f"(unreadable response body of type {type(body).__name__})"
+    data = extra_fields or {}
 
-    # try JSON
-    try:
-        payload = json.loads(raw)
-        # common shapes: {"errors": [...]}, {"error": "..."} , {"message": "..."}
-        if isinstance(payload, dict):
-            parts = []
-            if "errors" in payload:
-                errs = payload["errors"]
-                if isinstance(errs, (list, tuple)):
-                    parts.extend(str(e) if not isinstance(e, dict) else e.get("message") or e.get("detail") or json.dumps(e) for e in errs)
-                else:
-                    parts.append(str(errs))
-            if "error" in payload:
-                parts.append(str(payload["error"]))
-            if "message" in payload:
-                parts.append(str(payload["message"]))
-            if parts:
-                return " | ".join(p for p in parts if p)
-        # fallback: pretty JSON
-        return json.dumps(payload, indent=2)
-    except Exception:
-        pass
+    with open(file_path, "rb") as fh:
+        files = {"contents": (Path(file_path).name, fh, content_type)}
+        r = api.session.request(
+            "PUT", url,
+            headers=headers,
+            data=data,
+            files=files,
+            verify=api.verifySSL,
+            timeout=api.timeout,
+        )
 
-    # try XML
-    try:
-        root = ET.fromstring(raw)
-        tags = ("error", "errors", "message", "detail", "Description", "Message", "Reason")
-        msgs = []
-        for tag in tags:
-            for el in root.iter(tag):
-                if (txt := (el.text or "").strip()):
-                    msgs.append(txt)
-        if msgs:
-            return " | ".join(msgs)
-    except Exception:
-        pass
+    if r.status_code != 200:
+        raise BeaconAPIException(code=r.status_code, message=r.reason, body=r.content)
 
-    # as-is
-    return raw
+    # Return JSON if appropriate, else raw bytes/text
+    ctype = r.headers.get("content-type", "")
+    return r.json() if "application/json" in ctype or "application/vnd.api+json" in ctype else r.content
 
 
 
+import mimetypes
+from pathlib import Path
+from decipher.beacon import BeaconAPIException
+
+def upload_file(
+    api,
+    survey_path: str,          # e.g. "selfserve/1a/123456"
+    file_path: str,            # local path to the file
+    filename: str | None = None,   # e.g. "survey.xml"; defaults to basename(file_path)
+    validate: bool = True,         # only applies to survey.xml
+    overwrite_live: bool = False,
+    location: str = "root",        # "root" or "static"
+    content_type: str | None = None,
+):
+    forsta_api_login()
+
+    fp = Path(file_path)
+    filename = filename or fp.name
+    # Build the URL path with BOTH path params:
+    name = f"{survey_path}/{filename}"     # <- critical per your docs
+    url  = f"{api.host}/api/{api.version}/{name}"
+
+    # Guess content type if not provided
+    if content_type is None:
+        guessed, _ = mimetypes.guess_type(filename)
+        content_type = guessed or "application/octet-stream"
+
+    # Form fields (multipart text parts)
+    data = {
+        "validate": "true" if validate else "false",
+        "overwriteLive": "true" if overwrite_live else "false",
+        "location": location,  # "root" or "static"
+    }
+
+    # Auth + client headers
+    headers = {}
+    headers.update(api._requestAuthHeaders)
+    headers.update(api.headers)  # x-requested-with, etc.
+
+    with fp.open("rb") as fh:
+        files = {"contents": (filename, fh, content_type)}
+        r = api.session.request(
+            "PUT", url,
+            headers=headers,
+            data=data,
+            files=files,               # <- makes multipart/form-data
+            verify=api.verifySSL,
+            timeout=api.timeout,
+        )
+
+    if r.status_code != 200:
+        raise BeaconAPIException(code=r.status_code, message=r.reason, body=r.content)
+
+    ctype = r.headers.get("content-type", "")
+    return r.json() if "application/json" in ctype or "application/vnd.api+json" in ctype else r.content
 
 
 
+upload_project_file(
+    project_path=f"/selfserve/2222/xml_upload_test_2", 
+    filepath="xml/upload_tester.xml", 
+    output_filename="survey.xml"
+    )
 
-
-
-
-
-
-
-
-download_project_file(project_path, "xml")
-try:
-    upload_response = upload_project_file(project_path, "xml/xml_upload_XML Upload Test_data_confidential.xml")
-except BeaconAPIException as e:
-     detail = parse_beacon_error_body(e.body)
-     raise RuntimeError(f"Upload failed ({e.code} {e.message}): {detail}") from e
-
-
-print(upload_response.extra)

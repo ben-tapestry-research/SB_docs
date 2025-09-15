@@ -2,12 +2,13 @@ from pathlib import Path
 import sys
 import os
 from dotenv import load_dotenv
-from decipher.beacon import api
+from decipher.beacon import api, BeaconAPIException
 import json
 import pandas as pd
 import xml.etree.ElementTree as ET
 import io
 import openpyxl
+import mimetypes
 # TODO: Upload XML
 
 API_PREFIX = f"/surveys"
@@ -201,16 +202,56 @@ def get_survey_info(project_path: str, info: str) -> str:
     return response[info]
 
 
-def upload_project_file(project_path: str, filepath: str):
+def upload_project_file(project_path: str, filepath: str, output_filename: str):
+    """ Upload a file to a survey (eg an xml file). Have to do this manually to bypass issue with Decipher beacon API
+    Args:
+        project_path (str): The Decipher project path (e.g. 'selfserve/2222/240519')
+        filepath (str): The local path to the file to be uploaded
+        output_filename (str): The name the file should have when uploaded to the survey (e.g. 'survey.xml')
+        
+        Returns:
+            response (object): The API response as a JSON object."""
 
-    api_path = f"{API_PREFIX}/{project_path}/files/survey.xml"
+    api_path = f"{API_PREFIX}/{project_path}/files/{output_filename}"
 
     forsta_api_login()
+    fp = Path(filepath)
+    print(fp)
+
+    # e.g. https://uk.focusvision.com//api/v1//surveys//surveys/selfserve/2222/xml_upload_test_2/files/survey.xml
+    url = f"{api.host}/api/{api.version}/{api_path}"
     
-    xml_path = Path(filepath)
+    if "xml" in filepath:
+        content_type = "text/xml"
 
-    with xml_path.open("rb") as f:
-        data = f.read()
-    print(data)
+    headers = {}
+    data = {}
+    # e.g. {'x-apikey': 'API_KEY'}
+    headers.update(api._requestAuthHeaders)
+    # e.g. 'x-requested-with': 'decipher.beacon 29.2.0'
+    headers.update(api.headers)
 
-    return api.put(api_path, filename="survey.xml", contents=data)
+    with fp.open("rb") as fh:
+        # {'contents': ('survey.xml', <_io.BufferedReader name='xml\\upload_tester.xml'>, 'text/xml')}
+        files = {"contents": (output_filename, fh, content_type)}
+        print(files)
+
+        r = api.session.request(
+            method="PUT",
+            url=url,
+            headers=headers,
+            data=data,
+            files=files, # multipart form data consutrction
+            verify=api.verifySSL,
+            timeout=api.timeout
+        )
+    
+    if r.status_code != 200:
+        raise BeaconAPIException(code=r.status_code, message=r.reason, body=r.content)
+    
+    ctype = r.headers.get("content-type", "")
+    return r.json()
+    
+
+
+

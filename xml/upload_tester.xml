@@ -1,5 +1,5 @@
 <survey xmlns:builder="http://decipherinc.com/builder" xmlns:ss="http://decipherinc.com/ss" xmlns:atm1d="http://decipherinc.com/atm1d" xmlns:oe_check="http://decipherinc.com/oe_check" xmlns:html="http://decipherinc.com/html" xmlns:lucint="http://decipherinc.com/lucint" alt="XML Upload Test" browserDupes="safe" builder:cname="surveys.tapestryresearch.com" builder:wizardCompleted="1" builderCompatible="1" compat="154" delphi="1" displayOnError="all" extraVariables="source,record,decLang,list,userAgent" fir="on" html:showNumber="0" lang="uk" mobile="compat" mobileDevices="smartphone,tablet,desktop" name="Tapestry Research" secure="1" setup="term,decLang,quota,time" ss:accordionDisplay="0" ss:customCSS="Tapestry_03_08_2023" ss:disableBackButton="1" ss:enableNavigation="0" ss:hideProgressBar="0" ss:listDisplay="1" ss:logoAlt="Logo" ss:logoFile="selfserve/2222/logo_a2a001390fe4dc2ce73e6e195e691697.png" ss:logoPosition="middle" state="testing" theme="company/rebranding-themes" id="survey">
-  <res label="Help" id="YgrEk">Help m!!</res>
+  <res label="Help" id="YgrEk">Helz</r
   <res label="Privacy_Policy" id="IMVw8">Privacy Policy</res>
   <res label="sys_continue" id="Opmpu"/>
   <res label="sys_back" id="XcVKq"/>
