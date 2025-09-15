@@ -48,11 +48,18 @@ import xml.etree.ElementTree as ET
 from typing import List
 
 
-from survey_elements.models.questions import *
-from survey_elements.models.structural import *
-from survey_elements.models.logic import *
+from survey_elements.models.questions import (Element, Cell, Question, 
+                                              Row, Col, Choice, RadioQuestion, 
+                                              AutoFill, CheckboxQuestion, NumberQuestion, 
+                                              FloatQuestion, TextQuestion, TextAreaQuestion, SelectQuestion)
 
-from survey_elements.models.enums import *
+from survey_elements.models.structural import Note, Suspend, Exec, Block, Res, Style, HTML
+from survey_elements.models.logic import (Loopvar, Looprow, Loop, 
+                                          Quota, GoTo, Define, 
+                                          Terminate, Logic, SampleSources, 
+                                          SampleSource, Var, Exit, Condition)
+
+from survey_elements.models.enums import Where, Grouping, Legend, RowColChoiceShuffle, Shuffle, Sort, Mode
 from survey_elements.utils.xml_helpers import (
     _attr,
     _tag_text,
