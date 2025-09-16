@@ -8,7 +8,8 @@ import pandas as pd
 import xml.etree.ElementTree as ET
 import io
 import openpyxl
-
+import string
+import secrets
 
 API_PREFIX = f"/surveys"
 
@@ -147,6 +148,7 @@ def download_project_file(
         # Parse & strip XML - sorting the namespace issue too (was causing problems when downlading)
         if format_type == "xml":
             from io import BytesIO
+
             buf = BytesIO(response)
 
             # 1) collect prefix->URI mappings
@@ -400,3 +402,36 @@ def fetch_xml_line(filepath: Path, line_number: str) -> str:
         return lines[line_number - 2].lstrip()
     except:
         return "Unable to fetch line"
+
+
+# TODO: finish this
+def create_survey(survey_name: str) -> str:
+
+    forsta_api_login()
+
+    # Generate a random project path consisting of 3 letters, followed by 3 numbers
+    rand_letters = [secrets.choice(string.ascii_lowercase) for _ in range(3)]
+    rand_nums = [secrets.choice(string.digits) for _ in range(3)]
+    survey_path = "".join(rand_letters) + "".join(rand_nums)
+
+    # resp = api.post('/rh/companies/self/surveys', name=survey_name, ptype="beacon", prefPath=survey_path)
+
+    # Load the survey template
+    tree = ET.parse("xml/survey_template.xml")
+    root = tree.getroot()
+    root.set("alt", "survey_name")
+    tree.write("output.xml", encoding="utf-8", xml_declaration=True)
+
+    return 0
+
+
+def fetch_modules() -> list:
+    """
+    Retrieve a list of modules from Decipher
+    """
+    forsta_api_login()
+    # See: https://docs.developer.focusvision.com/docs/decipher/api#tag/Surveys
+    survey_list = api.get(
+        "/rh/companies/all/surveys", query=f"'[MODULES]'", select="title,path"
+    )
+    return survey_list
