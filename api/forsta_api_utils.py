@@ -10,6 +10,7 @@ import io
 import openpyxl
 import string
 import secrets
+from typing import List, Dict
 
 API_PREFIX = f"/surveys"
 
@@ -424,10 +425,11 @@ def create_survey(survey_name: str) -> str:
 
     return 0
 
-
-def fetch_modules() -> list:
+def fetch_modules() -> List[Dict[str,str]]:
     """
     Retrieve a list of modules from Decipher
+
+    :return survey_list: 
     """
     forsta_api_login()
     # See: https://docs.developer.focusvision.com/docs/decipher/api#tag/Surveys
@@ -435,3 +437,35 @@ def fetch_modules() -> list:
         "/rh/companies/all/surveys", query=f"'[MODULES]'", select="title,path"
     )
     return survey_list
+
+def format_fetched_modules(modules: List[Dict[str, str]]):
+    """ 
+    Formats fetched modules into a dict
+    
+    :param modules: Raw fetched modules from API
+    :return module_dict: Dictionary containing module id (key) and module names (value)
+    """
+    module_dict: Dict[str, str] = {}
+
+    for module in modules:
+        module_id = None
+        module_name = None
+
+        # Module Path
+        module_path: str = module.get('path', None)
+        if module_path:
+            path: Path = Path(module_path)
+            module_id: str = path.name
+
+        # Module Title
+        module_title: str = module.get('title', None)
+        if module_title:
+            module_name_split: List[str] = module_title.split("[MODULES] ", 1)
+            if len(module_name_split>1):
+                module_name: str = module_name_split[1]
+
+        # Add to dict if valid
+        if module_id and module_title:
+            module_dict[module_id] = module_name
+
+    return module_dict
