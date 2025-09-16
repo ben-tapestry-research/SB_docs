@@ -1,8 +1,10 @@
 from api.forsta_api_utils import fetch_modules
+from survey_elements import modules
 
-x = fetch_modules()
-print(x)
+# x = fetch_modules()
+# print(x)
 
+modules.load_module_from_project("selfserve/2222/module_sm")
 
 # x = download_project_file(
 #     project_path=f"/selfserve/2222/210212",
