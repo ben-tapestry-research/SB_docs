@@ -220,7 +220,7 @@ class Question(Element):
     sortChoices: set[Sort] = field(default_factory=set)
     sortCols: set[Sort] = field(default_factory=set)
     sortRows: set[Sort] = field(default_factory=set)
-    uses: str | None = None  # TODO: define list of these?
+    uses: str | None = None 
     values: str | None = None
     virtual: str | None = None
 
