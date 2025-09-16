@@ -425,18 +425,22 @@ def create_survey(survey_name: str) -> str:
 
     return 0
 
-def fetch_modules() -> List[Dict[str,str]]:
+def fetch_modules() -> Dict[str,str]:
     """
-    Retrieve a list of modules from Decipher
+    Retrieve a mapping of survey path --> survey name for Decipher module projects
 
-    :return survey_list: 
+    :return project_dict: Dictionary where keys are project paths ("selfserve/2222/module_cb") and values are the names ("[MODULES] CB: Category Brands)
     """
     forsta_api_login()
     # See: https://docs.developer.focusvision.com/docs/decipher/api#tag/Surveys
     survey_list = api.get(
         "/rh/companies/all/surveys", query=f"'[MODULES]'", select="title,path"
     )
-    return survey_list
+
+    # Convert list of dicts into simple dict
+    project_dict = {item['path']: item['title'] for item in survey_list}
+
+    return project_dict
 
 def format_fetched_modules(modules: List[Dict[str, str]]):
     """ 
