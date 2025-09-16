@@ -290,53 +290,28 @@ def keep_at_end_of_group(question, target_group, code_label):
 
    &lt;/style&gt;
 </style>
-  <note>*************** USE (OR DELETE) THE BELOW AS NECESSARY FOR EACH PROJECT ********************</note>
-  <radio label="DUM_boost" where="execute,survey,report">
-    <title>Sampling type</title>
-    <comment>${res.SP1}</comment>
-    <exec>
-DUM_boost.val = int(boost)
-  </exec>
-    <row label="r1">Nat Rep</row>
-    <row label="r2">Boost</row>
-  </radio>
-  <radio label="DUM_COUNTRY" cond="not (co in ['',None])" where="execute,survey,report">
-    <title>Demography: Country</title>
-    <comment>${res.SP1}</comment>
-    <exec>
-for eachRow in DUM_COUNTRY.rows:
-	if eachRow.label == 'r' + str(co):
-		DUM_COUNTRY.val = eachRow.index
-  </exec>
-    <row label="r36" alt="Australia" value="36">Australia</row>
-    <row label="r56" alt="Belgium" value="56">Belgium</row>
-    <row label="r76" alt="Brazil" value="76">Brazil</row>
-    <row label="r156" alt="China" value="156">China</row>
-    <row label="r170" alt="Colombia" value="170">Colombia</row>
-    <row label="r250" alt="France" value="250">France</row>
-    <row label="r276" alt="Germany" value="276">Germany</row>
-    <row label="r348" alt="Hungary" value="348">Hungary</row>
-    <row label="r360" alt="Indonesia" value="360">Indonesia</row>
-    <row label="r380" alt="Italy" value="380">Italy</row>
-    <row label="r458" alt="Malaysia" value="458">Malaysia</row>
-    <row label="r484" alt="Mexico" value="484">Mexico</row>
-    <row label="r528" alt="Netherlands" value="528">Netherlands</row>
-    <row label="r608" alt="Philippines" value="608">Philippines</row>
-    <row label="r616" alt="Poland" value="616">Poland</row>
-    <row label="r643" alt="Russian Federation (the)" value="643">Russian Federation (the)</row>
-    <row label="r702" alt="Singapore" value="702">Singapore</row>
-    <row label="r710" alt="South Africa" value="710">South Africa</row>
-    <row label="r724" alt="Spain" value="724">Spain</row>
-    <row label="r752" alt="Sweden" value="752">Sweden</row>
-    <row label="r792" alt="Turkey" value="792">Turkey</row>
-    <row label="r826" alt="UK" value="826">UK</row>
-    <row label="r840" alt="USA" value="840">USA</row>
-    <row label="r124" alt="Canada" value="124">Canada</row>
-    <row label="r784" alt="United Arab Emirates (the)" value="784">United Arab Emirates (the)</row>
-    <row label="r620" alt="Portugal" value="620">Portugal</row>
-    <row label="r410" alt="Korea (the Republic of)" value="410">Korea (the Republic of)</row>
-    <row label="r682" alt="Saudi Arabia" value="682">Saudi Arabia</row>
-    <row label="r818" alt="Egypt" value="818">Egypt</row>
-  </radio>
-  <suspend />
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </survey>
