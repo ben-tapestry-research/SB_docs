@@ -20,7 +20,7 @@ Date: September 2025
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING, TypeAlias, List, Iterator, Tuple
 
 from survey_elements.models.enums import Mode
 from dataclasses import field
@@ -31,6 +31,8 @@ import xml.etree.ElementTree as ET
 if TYPE_CHECKING:
     from .logic import *
     from .questions import *
+else:
+    Loop = None
 
 
 
@@ -89,7 +91,7 @@ class Exec:
         return el
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class Block:
     """
     A <block> tag
@@ -107,6 +109,27 @@ class Block:
         "Loop | Quota | GoTo | Define | Terminate | Block"
     )
     children: tuple[BlockChild, ...] = ()
+
+    @property
+    def questions(self) -> Tuple[Question, ...]:
+        """
+        Dynamic view of all Question instances inside this block.
+        
+        :return: Tuple of internal questions
+        """
+        return tuple(self._iter_questions())
+
+    def _iter_questions(self) -> Iterator[Question]:
+        """
+        Yield Question objects from children.
+        If nested Block, delve into it to retrieve questions
+        """
+        from .logic import Loop  # local import avoids circular import at module load
+        for child in self.children:
+            if isinstance(child, Question):
+                yield child
+            elif isinstance(child, (Block, Loop)):
+                yield from child._iter_questions()
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""

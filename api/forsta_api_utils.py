@@ -429,7 +429,7 @@ def fetch_modules() -> Dict[str,str]:
     """
     Retrieve a mapping of survey path --> survey name for Decipher module projects
 
-    :return project_dict: Dictionary where keys are project paths ("selfserve/2222/module_cb") and values are the names ("[MODULES] CB: Category Brands)
+    :return survey_list: 
     """
     forsta_api_login()
     # See: https://docs.developer.focusvision.com/docs/decipher/api#tag/Surveys
