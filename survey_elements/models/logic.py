@@ -32,8 +32,6 @@ from xml.etree import ElementTree as ET
 if TYPE_CHECKING:
     from .questions import *
     from .structural import *
-else:
-    Block = None
 
 @dataclass
 class Loopvar:
@@ -107,28 +105,6 @@ class Loop:
     )
     children: tuple[LoopChild, ...] = ()
     looprows: tuple[Looprow, ...] = ()
-
-    @property
-    def questions(self) -> Tuple[Question, ...]:
-        """
-        Dynamic view of all Question instances inside this loop.
-        
-        :return: Tuple of internal questions
-        """
-        return tuple(self._iter_questions())
-
-    def _iter_questions(self) -> Iterator[Question]:
-        """
-        Yield Question objects from children.
-        If nested Block or Loop, delve into it to retrieve questions
-        """
-        from .questions import Question
-        from .structural import Block # local import avoids circular import at module load
-        for child in self.children:
-            if isinstance(child, Question):
-                yield child
-            elif isinstance(child, (Block, Loop)):
-                yield from child._iter_questions()
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
