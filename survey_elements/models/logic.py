@@ -122,6 +122,7 @@ class Loop:
         Yield Question objects from children.
         If nested Block or Loop, delve into it to retrieve questions
         """
+        from .questions import Question
         from .structural import Block # local import avoids circular import at module load
         for child in self.children:
             if isinstance(child, Question):

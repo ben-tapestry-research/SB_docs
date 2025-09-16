@@ -461,7 +461,7 @@ def format_fetched_modules(modules: List[Dict[str, str]]):
         module_title: str = module.get('title', None)
         if module_title:
             module_name_split: List[str] = module_title.split("[MODULES] ", 1)
-            if len(module_name_split>1):
+            if len(module_name_split)>1:
                 module_name: str = module_name_split[1]
 
         # Add to dict if valid

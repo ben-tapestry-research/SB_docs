@@ -124,6 +124,7 @@ class Block:
         Yield Question objects from children.
         If nested Block, delve into it to retrieve questions
         """
+        from .questions import Question
         from .logic import Loop  # local import avoids circular import at module load
         for child in self.children:
             if isinstance(child, Question):
