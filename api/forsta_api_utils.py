@@ -429,7 +429,7 @@ def fetch_modules() -> List[Dict[str,str]]:
     """
     Retrieve a list of modules from Decipher
 
-    :return survey_list: 
+    :return survey_list: List of dictionaries for each module containing 'path' and 'title'
     """
     forsta_api_login()
     # See: https://docs.developer.focusvision.com/docs/decipher/api#tag/Surveys
