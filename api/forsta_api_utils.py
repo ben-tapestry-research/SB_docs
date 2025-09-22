@@ -31,7 +31,7 @@ def resource_path(relative_path: str) -> str:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-
+# TODO Need to add proper error handling and retry logic - api pull can fail randomly so must account for that
 def forsta_api_login() -> None:
     """
     Authenticates to the Forsta API using the API key in the environment vars.
@@ -429,7 +429,7 @@ def fetch_modules() -> Dict[str,str]:
     """
     Retrieve a mapping of survey path --> survey name for Decipher module projects
 
-    :return survey_list: 
+    :return project_dict: A dictionary containing the projects and their metadata 
     """
     forsta_api_login()
     # See: https://docs.developer.focusvision.com/docs/decipher/api#tag/Surveys
@@ -437,39 +437,23 @@ def fetch_modules() -> Dict[str,str]:
         "/rh/companies/all/surveys", query=f"'[MODULES]'", select="title,path"
     )
 
-    # Convert list of dicts into simple dict
-    project_dict = {item['path']: item['title'] for item in survey_list}
+    project_dict: Dict[str, Dict[str, str]] = {}
+
+    # Format survey_list
+    for item in survey_list:
+        title = item['title']
+        path = item['path']
+        formatted_title = title
+        project_code = Path(path).name
+        if title:
+            module_name_split: List[str] = title.split("[MODULES] ", 1)
+            if len(module_name_split)>1:
+                formatted_title: str = module_name_split[1]
+        item_dict = {
+            "project_path": path,
+            "title": formatted_title
+        }
+
+        project_dict[project_code] = item_dict
 
     return project_dict
-
-def format_fetched_modules(modules: List[Dict[str, str]]):
-    """ 
-    Formats fetched modules into a dict
-    
-    :param modules: Raw fetched modules from API
-    :return module_dict: Dictionary containing module id (key) and module names (value)
-    """
-    module_dict: Dict[str, str] = {}
-
-    for module in modules:
-        module_id = None
-        module_name = None
-
-        # Module Path
-        module_path: str = module.get('path', None)
-        if module_path:
-            path: Path = Path(module_path)
-            module_id: str = path.name
-
-        # Module Title
-        module_title: str = module.get('title', None)
-        if module_title:
-            module_name_split: List[str] = module_title.split("[MODULES] ", 1)
-            if len(module_name_split)>1:
-                module_name: str = module_name_split[1]
-
-        # Add to dict if valid
-        if module_id and module_title:
-            module_dict[module_id] = module_name
-
-    return module_dict

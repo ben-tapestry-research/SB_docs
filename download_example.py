@@ -1,49 +1,32 @@
 import sys
 from dotenv import load_dotenv
 
-"""
+
 sys.path.insert(1,r"C:\Users\GeorgePrice\git\SurveyBuilder\Survey-Builder")
 load_dotenv(dotenv_path=r"C:\Users\GeorgePrice\git\SurveyBuilder\Survey-Builder\keys.env")
-"""
 
 
-from api.forsta_api_utils import download_project_file
-from api.forsta_api_utils import fetch_modules, format_fetched_modules
-from survey_elements.parsing.xml_parser import parse_survey
-from survey_elements.models.structural import Block
+
+from api.forsta_api_utils import fetch_modules
 from survey_elements.models.questions import Question
-from survey_elements.utils.xml_helpers import to_xml_string
-from typing import Tuple, Any, Dict, List
+from survey_elements.modules import Module, load_module_from_project
+from survey_elements.survey import Survey
+from pathlib import Path
+from typing import Dict
 
+modules: Dict[str, Dict[str, str]] = fetch_modules()
 
+survey = Survey(title = "Test Survey", survey_id = "test")
+module1: Module = load_module_from_project(module_title = "SM: Core Screening", project_path = "selfserve/2222/module_sm")
+module2: Module = load_module_from_project(module_title = "XC: Core Demographics", project_path = "selfserve/2222/module_xc")
+module3: Module = load_module_from_project(module_title = "BP: Brand Perception", project_path = "selfserve/2222/module_cb")
 
-modules: List[Dict[str, str]] = fetch_modules()
-modules_dict: Dict[str, str] = format_fetched_modules(modules = modules)
+survey.add(module1)
+survey.add(module2)
 
-project_id: str = list(modules_dict.keys())[0]
-project_id = "module_sm"
-# Download (and save) the XML from Decipher
-xml_root = download_project_file(f"/selfserve/2222/{project_id}", "xml")
+survey.module_titles
+survey.swap(0,1)
+survey.reorder(project_code_order = ("module_sm", "module_xc"))
 
-# Parse into Python objects
-survey: Tuple[Any] = parse_survey(xml_root)
-len(survey)
-# Identify Internal Questions
-block = survey[22]
-len(block.questions)
-for question in block.questions:
+for question in survey.get("module_sm").questions:
     print(question.title)
-
-
-questions = []
-for attr in survey:
-    if isinstance(attr, Block):
-        questions = []
-
-questions[3]
-question_test = questions[3]
-dir(question_test)
-question_test.label
-
-for eachthing in survey:
-    print(to_xml_string(eachthing.to_xml_element(), pretty=True))
