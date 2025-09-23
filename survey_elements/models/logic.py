@@ -193,6 +193,12 @@ class Define:
 
         return el
 
+@dataclass(frozen=True)
+class DefineRef:
+    """ 
+    Placeholder referencing a Define by label (created during parse_rows)
+    """
+    source: str
 
 @dataclass
 class Terminate:

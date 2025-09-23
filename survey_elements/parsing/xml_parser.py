@@ -57,7 +57,7 @@ from survey_elements.models.structural import Note, Suspend, Exec, Block, Res, S
 from survey_elements.models.logic import (Loopvar, Looprow, Loop, 
                                           Quota, GoTo, Define, 
                                           Terminate, Logic, SampleSources, 
-                                          SampleSource, Var, Exit, Condition)
+                                          SampleSource, Var, Exit, Condition, DefineRef)
 
 from survey_elements.models.enums import Where, Grouping, Legend, RowColChoiceShuffle, Shuffle, Sort, Mode
 from survey_elements.utils.xml_helpers import (
@@ -112,6 +112,8 @@ def parse_rows(parent: ET.Element) -> tuple[Row, ...]:
         elif child.tag == "insert":
             label = child.get("source")
             _REQUIRED_DEFINES.add(label)
+            # append a placeholder so we know the rows in this question refer to an external Define list
+            rows.append(DefineRef(source=label))
 
     return tuple(rows)
 

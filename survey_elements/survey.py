@@ -11,16 +11,18 @@ from typing import Set, Tuple, Iterator, List, Sequence, Optional, Dict, Any
 from survey_elements.modules import Module, Editable
 from survey_elements.models.logic import Define
 from survey_elements.models.questions import Question
-from survey_elements.models.logic import Loop, Define, Terminate
+from survey_elements.models.logic import Define, DefineRef
 from survey_elements.parsing.xml_parser import required_defines
+
 
 @dataclass
 class Survey:
     """
     Data structure for an entire survey
-    
-    
+
+
     """
+
     title: str
     survey_id: str
 
@@ -32,14 +34,14 @@ class Survey:
 
     @property
     def module_titles(self) -> Tuple[str]:
-        """ Returns names of internal modules """
+        """Returns names of internal modules"""
         return tuple(m.title for m in self.modules)
 
     @property
     def editables(self) -> Tuple[Editable, ...]:
         """
         Returns all editable classes within its current modules
-        
+
         :return: Tuple of internal editable objects
         """
         return tuple(e for m in self.modules for e in m.editables)
@@ -52,10 +54,10 @@ class Survey:
     def defines(self) -> Tuple[Define, ...]:
         return tuple(d for m in self.modules for d in m.defines)
 
-    # TODO Create a mapping dictionary for its modules and its modules contents 
+    # TODO Create a mapping dictionary for its modules and its modules contents
     @property
     def map(self) -> Dict[str, Any]:
-        """ Create a mapping dictionary of its modules and child classes """
+        """Create a mapping dictionary of its modules and child classes"""
         pass
 
     # -- Module Functions -- #
@@ -85,7 +87,7 @@ class Survey:
         return self.modules[self.index_of(project_code)]
 
     def dup_check(self, project_code: str) -> bool:
-        """ Returns true if module already entered """
+        """Returns true if module already entered"""
         return any(m.project_code == project_code for m in self.modules)
 
     def add(self, module: Module) -> None:
@@ -127,7 +129,10 @@ class Survey:
 
     def swap(self, index_a: int, index_b: int) -> None:
         """Swap two modules by index."""
-        self.modules[index_a], self.modules[index_b] = self.modules[index_b], self.modules[index_a]
+        self.modules[index_a], self.modules[index_b] = (
+            self.modules[index_b],
+            self.modules[index_a],
+        )
 
     def reorder(self, project_code_order: Sequence[str]) -> None:
         """
@@ -142,10 +147,42 @@ class Survey:
         new_list: List[Module] = []
         for code in project_code_order:
             try:
-                new_list.append(code_to_mod.pop(code)) # get and remove Module
+                new_list.append(code_to_mod.pop(code))  # get and remove Module
             except KeyError:
                 raise ValueError(f"Unknown project_code in reorder: '{code}'")
         if code_to_mod:
             missing = ", ".join(code_to_mod.keys())
             raise ValueError(f"Reorder is missing module(s): {missing}")
         self.modules = new_list
+
+    def resolve_inserts(self) -> None:
+        """
+        Replace DefineRef placeholders in queestion.rows with the rows from the corresponding Define.
+        Needs to be called after all modules are loaded into the survey
+        """
+
+        # build lookup of defines across modules
+        defs_by_label: Dict[str, Define] = {d.label: d for d in self.defines}
+
+        for module in self.modules:
+            print(f"looking at module {module.title}")
+            for qn in module.questions:
+                # skip if question has no rows
+                print(f"looking at question {qn.label}")
+                if not hasattr(qn, "rows"):
+                    continue
+                new_rows = []
+                for item in qn.rows:
+                    if isinstance(item, DefineRef):
+                        src = item.source
+                        if src not in defs_by_label:
+                            raise ValueError(
+                                f"Define '{src}' was referenced by question {qn.label} but not found"
+                            )
+                        new_rows.extend(defs_by_label[src].rows)
+
+                    else:
+                        new_rows.append(item)
+
+                    # Assign tuple back to original question
+                    qn.rows = tuple(new_rows)

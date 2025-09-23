@@ -24,8 +24,12 @@ module3: Module = load_module_from_project(module_title = "BP: Brand Perception"
 survey.add(module1)
 survey.add(module2)
 
-# The required defines for the survey
+# The required defines for the survey - this is a de-duped list of the LABELS of the defines that are needed
 print("REQUIRED DEFINES: ", survey.required_defines)
+survey.resolve_inserts()
+
+
+
 
 survey.module_titles
 survey.swap(0,1)
