@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from typing import Set, Tuple, Iterator, List, Sequence, Optional, Dict, Any
 from survey_elements.modules import Module, Editable
 from survey_elements.models.logic import Define
-from survey_elements.models.questions import Question
+from survey_elements.models.questions import Question, Row
 from survey_elements.models.logic import Define, DefineRef
 from survey_elements.parsing.xml_parser import required_defines
 
@@ -31,6 +31,45 @@ class Survey:
     modules: List[Module] = field(default_factory=list)
 
     required_defines: Set[str] = field(default_factory=set)
+    # Editable defines, plus non-editable ones pulled from modules
+    _defines: List[Define] = field(default_factory=list)
+
+    # Labels of the defines where the user needs to fill in the info for them
+    # Any other defines pulled from modules are non-editable
+    ROW_PREFIXES: dict[str, str] = field(
+        default_factory=lambda: {
+            "FREQUENCY": "fr",
+            "FREQUENCY_SHORT": "frs",
+            "CONSIDERATION": "con",
+            "RECENCY": "rec",
+            "CATEGORIES": "cat",
+            "BRANDS": "br",
+            "PRIORITY_LEVEL_LISTS": "pll",
+            "PERCEPTIONS": "per",
+            "MOTIVATIONS": "mot",
+            "CATEGORY_ATTITUDES": "ca",
+            "LIFE_ATTITUDES": "la",
+            "LQ_CHEM": "lqc",
+            "LQ_EMOT": "lqe",
+            "LQ_RATIONAL": "lqr",
+            "LQ_COMPAT": "lqco",
+            "MESSAGES": "msg",
+            "STREAMINGBRANDS": "stb",
+            "SOCIALMEDIA": "sm",
+            "NEWSPAPERS": "np",
+            "MAGAZINES": "mag",
+            "AUDIOSTREAMINGBRANDS": "asb",
+            "RADIOSTATIONS": "rs",
+            "WEBSITES": "web",
+            "SHOWS": "sh",
+            "CHANNELS": "ch",
+            "MEDIA": "med",
+            "INTERESTS": "int",
+            "SPORTS": "spo",
+        },
+        init=False,
+        repr=False,
+    )
 
     @property
     def module_titles(self) -> Tuple[str]:
@@ -52,7 +91,8 @@ class Survey:
 
     @property
     def defines(self) -> Tuple[Define, ...]:
-        return tuple(d for m in self.modules for d in m.defines)
+        """Return the survey-owned Define objects (both imported and created)."""
+        return tuple(self._defines)
 
     # TODO Create a mapping dictionary for its modules and its modules contents
     @property
@@ -96,9 +136,25 @@ class Survey:
             raise ValueError(f"Duplicate project_code '{module.project_code}'")
         self.modules.append(module)
 
-        # incorporate inserts referenced while parsing this mo
+        # incorporate inserts referenced while parsing this module
         defines = required_defines()
         self.required_defines.update(defines)
+
+        # Import non-editable defines from module into survey._defines.
+        # Editable defines (labels in ROW_PREFIXES) qill not be imported
+        # isntead, we mark their label as required so create_define() will produce them.
+        for d in getattr(module, "defines", ()):
+            if not d.label:
+                continue
+            if d.label in self.ROW_PREFIXES:
+                # editable: ensure it's tracked as required, but do not import
+                self.required_defines.add(d.label)
+                # ensure no stale survey-owned copy exists
+                self._defines = [ex for ex in self._defines if ex.label != d.label]
+            else:
+                # non-editable: import unless already present
+                if not any(existing.label == d.label for existing in self._defines):
+                    self._defines.append(d)
 
     def insert(self, index: int, module: Module) -> None:
         """Insert a module at a specific index; enforces unique project_code."""
@@ -155,6 +211,35 @@ class Survey:
             raise ValueError(f"Reorder is missing module(s): {missing}")
         self.modules = new_list
 
+    def create_define(self, def_label: str, items: List[str]) -> None:
+        """Create or replace an editable Define object with the given label and items."""
+        if def_label not in self.required_defines:
+            raise ValueError(
+                f"Define with label {def_label} not in required defines for survey"
+            )
+
+        if def_label not in self.ROW_PREFIXES:
+            raise ValueError(f"Define label {def_label} is not editable via create_define()")
+
+        # build rows into a list, then convert to tuple for Define
+        def_rows_list: List[Row] = []
+        prefix = self.ROW_PREFIXES[def_label]
+
+        # Row labels in define will be prefix + ascending counter (e.g. fs1, fs2, etc...)
+        for idx, each_content in enumerate(items, start=1):
+            def_rows_list.append(Row(label=f"{prefix}{idx}", content=each_content))
+        def_rows = tuple(def_rows_list)
+
+        
+        final_define = Define(label=def_label, rows=def_rows)
+        for i, existing in enumerate(self._defines):
+            # replace existing define with same label or append
+            if existing.label == def_label:
+                self._defines[i] = final_define
+                break
+        else:
+            self._defines.append(final_define)
+
     def resolve_inserts(self) -> None:
         """
         Replace DefineRef placeholders in queestion.rows with the rows from the corresponding Define.
@@ -186,3 +271,26 @@ class Survey:
 
                     # Assign tuple back to original question
                     qn.rows = tuple(new_rows)
+
+    def list_defines(self) -> dict:
+        """Return a mapping define_label -> source.
+          - 'survey'  -> survey._defines (created/imported into survey)
+          - 'editable:[module]' -> editable define present in a module (should be at survey-level)
+          - 'module:[module]' -> non-editable define found in module
+        """
+        mapping: dict[str, str] = {}
+        # survey-owned defines first
+        for d in self._defines:
+            mapping[d.label] = "survey"
+
+        # module defines: if editable label not in survey._defines show it as editable:<module>
+        for m in self.modules:
+            mod_name = getattr(m, "title", None) or getattr(m, "project_code", "<unknown>")
+            for d in getattr(m, "defines", ()):
+                if d.label in mapping:
+                    continue  # already recorded as survey-owned
+                if d.label in self.ROW_PREFIXES:
+                    mapping[d.label] = f"editable:{mod_name}"
+                else:
+                    mapping[d.label] = f"module:{mod_name}"
+        return mapping

@@ -24,10 +24,25 @@ module3: Module = load_module_from_project(module_title = "BP: Brand Perception"
 survey.add(module1)
 survey.add(module2)
 
-# The required defines for the survey - this is a de-duped list of the LABELS of the defines that are needed
-print("REQUIRED DEFINES: ", survey.required_defines)
-survey.resolve_inserts()
 
+
+
+# The required defines for the survey - de-duped set of LABELS from <insert> tags
+defines_needed = survey.required_defines
+
+for label in defines_needed:
+    # TODO: editable define = user needs to add rows via front-end
+    if label in survey.ROW_PREFIXES:
+        survey.create_define(label, ["row content 1 from front-end", "row content 2 from front-end"])
+    else:
+        print(f"non-editable define found: {label}")
+
+for label, src in survey.list_defines().items():
+    print(label, "=>", src)
+
+# Function to resolve inserts found in a survey (where <insert> tags are, we map them back to the rows of the corresponding <define>)
+# maybe could be helpful later in the front-end?
+survey.resolve_inserts()
 
 
 
