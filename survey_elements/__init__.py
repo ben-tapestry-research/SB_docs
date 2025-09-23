@@ -10,7 +10,7 @@ from .models.questions import (
 )
 from .models.structural import Note, Suspend, Exec, Block
 from .models.logic import Loop, Quota, GoTo, Define, Terminate
-from .parsing.xml_parser import element_from_xml_element, find_defines
+from .parsing.xml_parser import element_from_xml_element, required_defines
 from .utils.xml_helpers import to_xml_string
 
 __all__ = [
@@ -24,5 +24,5 @@ __all__ = [
     # structural/logic
     "Note","Suspend","Exec","Block","Loop","Quota","GoTo","Define","Terminate",
     # parsing
-    "element_from_xml_element","find_defines","to_xml_string",
+    "element_from_xml_element","to_xml_string","required_defines"
 ]

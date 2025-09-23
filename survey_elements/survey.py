@@ -7,11 +7,12 @@ Date: September 2025
 """
 
 from dataclasses import dataclass, field
-from typing import Tuple, Iterator, List, Sequence, Optional, Dict, Any
+from typing import Set, Tuple, Iterator, List, Sequence, Optional, Dict, Any
 from survey_elements.modules import Module, Editable
 from survey_elements.models.logic import Define
 from survey_elements.models.questions import Question
 from survey_elements.models.logic import Loop, Define, Terminate
+from survey_elements.parsing.xml_parser import required_defines
 
 @dataclass
 class Survey:
@@ -26,6 +27,8 @@ class Survey:
     comments: Optional[str] = None
 
     modules: List[Module] = field(default_factory=list)
+
+    required_defines: Set[str] = field(default_factory=set)
 
     @property
     def module_titles(self) -> Tuple[str]:
@@ -90,6 +93,10 @@ class Survey:
         if self.dup_check(module.project_code):
             raise ValueError(f"Duplicate project_code '{module.project_code}'")
         self.modules.append(module)
+
+        # incorporate inserts referenced while parsing this mo
+        defines = required_defines()
+        self.required_defines.update(defines)
 
     def insert(self, index: int, module: Module) -> None:
         """Insert a module at a specific index; enforces unique project_code."""

@@ -24,6 +24,9 @@ module3: Module = load_module_from_project(module_title = "BP: Brand Perception"
 survey.add(module1)
 survey.add(module2)
 
+# The required defines for the survey
+print("REQUIRED DEFINES: ", survey.required_defines)
+
 survey.module_titles
 survey.swap(0,1)
 survey.reorder(project_code_order = ("module_sm", "module_xc"))

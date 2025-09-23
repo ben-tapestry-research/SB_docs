@@ -108,14 +108,10 @@ def parse_rows(parent: ET.Element) -> tuple[Row, ...]:
         # Direct row declaration in XML
         if child.tag == "row":
             rows.append(parse_row(child))
-        # Reference to a <define> tag - insert its rows here
+        # Fetch the source="xxx" from the insert, and add to the list of required defines
         elif child.tag == "insert":
             label = child.get("source")
-            d = _DEFINES.get(label)
-            if d:
-                rows.extend(d.rows)
-            else:
-                raise (f"<insert label='{label}'> not found in defines")
+            _REQUIRED_DEFINES.add(label)
 
     return tuple(rows)
 
@@ -397,7 +393,7 @@ def parse_note(note_el: ET.Element) -> Note:
     Returns:
         Note: A Note object
     """
-    content = note_el.text.strip()
+    content = note_el.text
     return Note(content=content)
 
 
@@ -423,7 +419,7 @@ def parse_exec(exec_el: ET.Element) -> Exec:
     Returns:
         Exec: A Exec object
     """
-    content = exec_el.text.strip()
+    content = exec_el.text
     return Exec(content=content)
 
 
@@ -537,7 +533,7 @@ def parse_term(term_el: ET.Element) -> Terminate:
     return Terminate(
         label=_attr(term_el, "label"),
         cond=_attr(term_el, "cond"),
-        content=term_el.text.strip(),
+        content=term_el.text
     )
 
 
@@ -553,7 +549,7 @@ def parse_survey(root: ET.Element) -> tuple[Element, ...]:
     # Load and parse the XML file
     # root = ET.parse(src).getroot()
     # Find all <define> elements and register them
-    find_defines(root)
+    #find_defines(root)
     elements = []
     for child in root:
         tag = child.tag
@@ -609,7 +605,7 @@ def parse_style(style_el: ET.Element) -> Style:
         before=_attr(style_el, "before"),
         withx=_attr(style_el, "with"),
         wrap=_attr(style_el, "wrap"),
-        content=style_el.text.strip(),
+        content=style_el.text,
     )
 
 
@@ -728,10 +724,13 @@ _PARSERS = {
 }
 
 # Global dictionary of <define> elements by their label (populated by find_defines)
-_DEFINES: dict[str, Define] = {}
+# _DEFINES: dict[str, Define] = {}
 
 # Stack to show current path while parsing (for debugging)
 _PARSE_STACK: List[str] = []
+
+# De-duped set of define labels (from <insert source="..."/>)
+_REQUIRED_DEFINES: set[str] = set()
 
 
 def _current_path() -> str:
@@ -770,28 +769,40 @@ def element_from_xml_element(xml_elm: ET.Element):
     finally:
         _PARSE_STACK.pop()
 
-
-def find_defines(root_el: ET.Element) -> dict[str, Define]:
+def required_defines() -> list[str]:
+    """ 
+    Return a de-duped list of all source labels from <insert source="xxx"/> - where xxx is the label of a required define
     """
-    Search for all <define> elements in the XML and register them by their label (for lookup later)
+    return _REQUIRED_DEFINES
 
-    Args:
-        root_el (ET.Element): The root ElementTree element (e.g. <survey>)
-    Returns:
-        dict[str, Define]: A dictionary of Define objects by their label
+def clear_required_defines() -> None:
     """
+    Clear the collected required defines
+    """
+    _REQUIRED_DEFINES.clear()
 
-    defs: dict[str, Define] = {}
-    for el in root_el.iter():
-        if el.tag == "define":
-            label = el.get("label")
-            print(label)
-            # parse its rows
-            rows = tuple(parse_row(child) for child in el)
-            # create Define object and add to dictionary
-            defs[label] = Define(label=label, rows=rows)
+# UNUSED
+# def find_defines(root_el: ET.Element) -> dict[str, Define]:
+#     """
+#     Search for all <define> elements in the XML and register them by their label (for lookup later)
 
-    # cache and return a copy
-    _DEFINES.clear()
-    _DEFINES.update(defs)
-    return dict(defs)
+#     Args:
+#         root_el (ET.Element): The root ElementTree element (e.g. <survey>)
+#     Returns:
+#         dict[str, Define]: A dictionary of Define objects by their label
+#     """
+
+#     defs: dict[str, Define] = {}
+#     for el in root_el.iter():
+#         if el.tag == "define":
+#             label = el.get("label")
+#             print(label)
+#             # parse its rows
+#             rows = tuple(parse_row(child) for child in el)
+#             # create Define object and add to dictionary
+#             defs[label] = Define(label=label, rows=rows)
+
+#     # cache and return a copy
+#     _DEFINES.clear()
+#     _DEFINES.update(defs)
+#     return dict(defs)
