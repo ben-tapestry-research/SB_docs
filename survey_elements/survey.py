@@ -147,12 +147,11 @@ class Survey:
             if not d.label:
                 continue
             if d.label in self.ROW_PREFIXES:
-                # editable: ensure it's tracked as required, but do not import
+                # editable: mark as required and remove module copy to avoid duplication
                 self.required_defines.add(d.label)
-                # ensure no stale survey-owned copy exists
-                self._defines = [ex for ex in self._defines if ex.label != d.label]
+                module.defines = [md for md in module.defines if md.label != d.label]
             else:
-                # non-editable: import unless already present
+                # import non-editable as before
                 if not any(existing.label == d.label for existing in self._defines):
                     self._defines.append(d)
 
