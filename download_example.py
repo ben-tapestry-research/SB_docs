@@ -25,11 +25,10 @@ survey.add(module1)
 survey.add(module2)
 survey.add(module3)
 
-len(module3.questions)
 
 question = module3.questions[28]
 
-question.rows
+question.define_refs
 
 for question in module3.questions:
     question.rows

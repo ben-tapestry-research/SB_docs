@@ -14,10 +14,7 @@ from survey_elements.models.enums import (
 )
 from survey_elements.utils.xml_helpers import _append_children
 from survey_elements.utils.xml_helpers import bool_bit, str_, csv
-
-if TYPE_CHECKING:
-    # Avoid circular
-    from survey_elements.models.logic import DefineRef
+from survey_elements.models.logic import DefineRef
 
 
 """
@@ -270,7 +267,6 @@ class Question(Element):
     def define_refs(self) -> Tuple[DefineRef, ...]:
         """ Tuple of DefineRef instances within a questions rows """
         # Local import at runtime to avoid circular imports
-        from survey_elements.models.logic import DefineRef
         refs = []
         for attr in ("rows"):
             seq = getattr(self, attr, None)
@@ -280,7 +276,6 @@ class Question(Element):
 
     def _bind_define_refs(self) -> None:
         """ Adds self to parent of instances of DefineRef """
-        from survey_elements.models.logic import DefineRef
         for attr in ("rows"):
             seq = getattr(self, attr, None)
             if not seq:
