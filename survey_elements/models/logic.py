@@ -27,6 +27,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional, Tuple, TypeAlias, Iterator
 from xml.etree import ElementTree as ET
+import weakref
 
 # Only import types at type-check time to avoid runtime circular imports
 if TYPE_CHECKING:
@@ -199,6 +200,15 @@ class DefineRef:
     Placeholder referencing a Define by label (created during parse_rows)
     """
     source: str
+    # Allow multiple parent Questions; use WeakSet to avoid strong ref cycles
+    parents: weakref.WeakSet[Question] = field(default_factory=weakref.WeakSet, repr=False)
+
+    def add_parent(self, q: Question) -> None:
+        self.parents.add(q)
+
+    def parent_list(self) -> tuple[Question, ...]:
+        return tuple(self.parents)
+
 
 @dataclass
 class Terminate:

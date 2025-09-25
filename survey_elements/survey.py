@@ -9,10 +9,9 @@ Date: September 2025
 from dataclasses import dataclass, field
 from typing import Set, Tuple, Iterator, List, Sequence, Optional, Dict, Any
 from survey_elements.modules import Module, Editable
-from survey_elements.models.logic import Define
 from survey_elements.models.questions import Question, Row
 from survey_elements.models.logic import Define, DefineRef
-from survey_elements.parsing.xml_parser import required_defines
+# from survey_elements.parsing.xml_parser import required_defines
 
 
 @dataclass
@@ -30,12 +29,9 @@ class Survey:
 
     modules: List[Module] = field(default_factory=list)
 
-    required_defines: Set[str] = field(default_factory=set)
-    # Editable defines, plus non-editable ones pulled from modules
-    _defines: List[Define] = field(default_factory=list)
+    created_defines: Dict[str, Define] = field(default_factory = dict)
 
     # Labels of the defines where the user needs to fill in the info for them
-    # Any other defines pulled from modules are non-editable
     ROW_PREFIXES: dict[str, str] = field(
         default_factory=lambda: {
             "FREQUENCY": "fr",
@@ -91,9 +87,28 @@ class Survey:
 
     @property
     def defines(self) -> Tuple[Define, ...]:
-        """Return the survey-owned Define objects (both imported and created)."""
-        return tuple(self._defines)
+        return tuple(d for m in self.modules for d in m.defines)
+    
+    @property
+    def required_defines(self) -> Set[Define]:
+        """ Set of all required defines currently in the survey """
+        return {
+        d
+        for m in self.modules
+        for d in getattr(m, "defines", ())
+        if getattr(d, "label", None) in getattr(m, "ROW_PREFIXES", ())
+    }
 
+    @property
+    def required_defines_labels(self) -> Set[str]:
+        """ Set of the labels (source) for all the required defines """
+        return {d.label for d in self.required_defines}
+ 
+    @property
+    def define_refs(self) -> Tuple[DefineRef, ...]:
+        """ Tuple of all instances of DefineRefs in survey """
+        return tuple(d for m in self.modules for d in m.define_refs)
+    
     # TODO Create a mapping dictionary for its modules and its modules contents
     @property
     def map(self) -> Dict[str, Any]:
@@ -135,25 +150,6 @@ class Survey:
         if self.dup_check(module.project_code):
             raise ValueError(f"Duplicate project_code '{module.project_code}'")
         self.modules.append(module)
-
-        # incorporate inserts referenced while parsing this module
-        defines = required_defines()
-        self.required_defines.update(defines)
-
-        # Import non-editable defines from module into survey._defines.
-        # Editable defines (labels in ROW_PREFIXES) qill not be imported
-        # isntead, we mark their label as required so create_define() will produce them.
-        for d in getattr(module, "defines", ()):
-            if not d.label:
-                continue
-            if d.label in self.ROW_PREFIXES:
-                # editable: mark as required and remove module copy to avoid duplication
-                self.required_defines.add(d.label)
-                module.defines = [md for md in module.defines if md.label != d.label]
-            else:
-                # import non-editable as before
-                if not any(existing.label == d.label for existing in self._defines):
-                    self._defines.append(d)
 
     def insert(self, index: int, module: Module) -> None:
         """Insert a module at a specific index; enforces unique project_code."""
@@ -212,11 +208,10 @@ class Survey:
 
     def create_define(self, def_label: str, items: List[str]) -> None:
         """Create or replace an editable Define object with the given label and items."""
-        if def_label not in self.required_defines:
+        if def_label not in self.required_defines_labels:
             raise ValueError(
                 f"Define with label {def_label} not in required defines for survey"
             )
-
         if def_label not in self.ROW_PREFIXES:
             raise ValueError(f"Define label {def_label} is not editable via create_define()")
 
@@ -229,47 +224,25 @@ class Survey:
             def_rows_list.append(Row(label=f"{prefix}{idx}", content=each_content))
         def_rows = tuple(def_rows_list)
 
-        
         final_define = Define(label=def_label, rows=def_rows)
-        for i, existing in enumerate(self._defines):
-            # replace existing define with same label or append
-            if existing.label == def_label:
-                self._defines[i] = final_define
-                break
-        else:
-            self._defines.append(final_define)
+        # Add to created_define dict
+        self.created_defines[def_label, final_define]
 
     def resolve_inserts(self) -> None:
         """
         Replace DefineRef placeholders in queestion.rows with the rows from the corresponding Define.
         Needs to be called after all modules are loaded into the survey
         """
-
-        # build lookup of defines across modules
-        defs_by_label: Dict[str, Define] = {d.label: d for d in self.defines}
-
-        for module in self.modules:
-            print(f"looking at module {module.title}")
-            for qn in module.questions:
-                # skip if question has no rows
-                print(f"looking at question {qn.label}")
-                if not hasattr(qn, "rows"):
-                    continue
-                new_rows = []
-                for item in qn.rows:
-                    if isinstance(item, DefineRef):
-                        src = item.source
-                        if src not in defs_by_label:
-                            raise ValueError(
-                                f"Define '{src}' was referenced by question {qn.label} but not found"
-                            )
-                        new_rows.extend(defs_by_label[src].rows)
-
-                    else:
-                        new_rows.append(item)
-
-                    # Assign tuple back to original question
-                    qn.rows = tuple(new_rows)
+        for question in self.questions:
+            insert_rows = []
+            for ref in question.define_refs:
+                label = ref.source
+                define_insert = dict.get(label, None)
+                if not define_insert:
+                    raise ValueError(f"Define {label} was not created")
+                insert_rows.append(define_insert.rows)
+            if insert_rows:
+                question.rows = tuple(insert_rows)
 
     def list_defines(self) -> dict:
         """Return a mapping define_label -> source.

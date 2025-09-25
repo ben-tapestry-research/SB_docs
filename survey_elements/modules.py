@@ -6,13 +6,13 @@ Author: George
 Date: September 2025
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from survey_elements.models.structural import Block, HTML
 from survey_elements.models.questions import Question
-from survey_elements.models.logic import Loop, Define, Terminate
+from survey_elements.models.logic import Loop, Define, DefineRef, Terminate
 from api.forsta_api_utils import download_project_file
 from survey_elements.parsing.xml_parser import parse_block
-from typing import Tuple, Iterator, List, Iterable, Any, TypeAlias
+from typing import Tuple, Iterator, List, Iterable, Any, TypeAlias, Set
 from pathlib import Path
 # Decipher project where <define> lists and text piping vars are held
 DEPENDENCIES_PROJECT_CODE = "module_dependencies"
@@ -28,7 +28,7 @@ class Module:
     title: str  # name of the module to show on-screen (e.g. "CB: Category Brands")
     project_path: Path # Path for project (e.g. Path("selfserve/2222/module_sm"))
     main: Block  # The main module block where everything lives
-    
+
     @property
     def project_code(self) -> str:
         # Decipher project code (e.g. "module_cb")
@@ -51,6 +51,11 @@ class Module:
     def defines(self) -> Tuple[Define, ...]:
         return self._filter_editables(Define)
     
+    @property
+    def define_refs(self) -> Tuple[DefineRef, ...]:
+        """ Tuple of all DefineRef instances in this modules questions """
+        return tuple(ref for q in self.questions for ref in getattr(q, "define_refs", ()))
+
     @property
     def HTMLs(self) -> Tuple[HTML, ...]:
         return self._filter_editables(HTML)

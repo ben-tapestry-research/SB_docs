@@ -23,8 +23,16 @@ module3: Module = load_module_from_project(module_title = "BP: Brand Perception"
 
 survey.add(module1)
 survey.add(module2)
+survey.add(module3)
 
+len(module3.questions)
 
+question = module3.questions[28]
+
+question.rows
+
+for question in module3.questions:
+    question.rows
 
 
 # The required defines for the survey - de-duped set of LABELS from <insert> tags

@@ -111,7 +111,7 @@ def parse_rows(parent: ET.Element) -> tuple[Row, ...]:
         # Fetch the source="xxx" from the insert, and add to the list of required defines
         elif child.tag == "insert":
             label = child.get("source")
-            _REQUIRED_DEFINES.add(label)
+            #_REQUIRED_DEFINES.add(label)
             # append a placeholder so we know the rows in this question refer to an external Define list
             rows.append(DefineRef(source=label))
 
@@ -732,7 +732,7 @@ _PARSERS = {
 _PARSE_STACK: List[str] = []
 
 # De-duped set of define labels (from <insert source="..."/>)
-_REQUIRED_DEFINES: set[str] = set()
+#_REQUIRED_DEFINES: set[str] = set()
 
 
 def _current_path() -> str:
@@ -771,6 +771,8 @@ def element_from_xml_element(xml_elm: ET.Element):
     finally:
         _PARSE_STACK.pop()
 
+
+'''
 def required_defines() -> list[str]:
     """ 
     Return a de-duped list of all source labels from <insert source="xxx"/> - where xxx is the label of a required define
@@ -782,6 +784,8 @@ def clear_required_defines() -> None:
     Clear the collected required defines
     """
     _REQUIRED_DEFINES.clear()
+
+'''
 
 # UNUSED
 # def find_defines(root_el: ET.Element) -> dict[str, Define]:

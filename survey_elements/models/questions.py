@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import xml.etree.ElementTree as ET
 from dataclasses import field
+from typing import Tuple, TYPE_CHECKING
+
 
 from survey_elements.models.enums import (
     Where,
@@ -12,6 +14,11 @@ from survey_elements.models.enums import (
 )
 from survey_elements.utils.xml_helpers import _append_children
 from survey_elements.utils.xml_helpers import bool_bit, str_, csv
+
+if TYPE_CHECKING:
+    # Avoid circular
+    from survey_elements.models.logic import DefineRef
+
 
 """
 Defines the core data structures for survey questions and elements. 
@@ -194,6 +201,8 @@ class Question(Element):
     Methods:
     - to_xml_element: Converts the object to an XML element
     """
+    def __post_init__(self) -> None:
+        self._bind_define_refs() # Assign DefineRefs with self reference to DefineRef parent attribute
 
     # Mandatory elements
     title: str
@@ -256,6 +265,29 @@ class Question(Element):
         "title": ("title", str_),  # <title>...</title>
         "comment": ("comment", str_),  # <comment></comment>
     }
+
+    @property
+    def define_refs(self) -> Tuple[DefineRef, ...]:
+        """ Tuple of DefineRef instances within a questions rows """
+        # Local import at runtime to avoid circular imports
+        from survey_elements.models.logic import DefineRef
+        refs = []
+        for attr in ("rows"):
+            seq = getattr(self, attr, None)
+            if seq:
+                refs.extend(x for x in seq if isinstance(x, DefineRef))
+        return tuple(refs)
+
+    def _bind_define_refs(self) -> None:
+        """ Adds self to parent of instances of DefineRef """
+        from survey_elements.models.logic import DefineRef
+        for attr in ("rows"):
+            seq = getattr(self, attr, None)
+            if not seq:
+                continue
+            for item in seq:
+                if isinstance(item, DefineRef):
+                    item.add_parent(self)
 
     def to_xml_element(self) -> ET.Element:
         # 1) Build the base element + title/comment the way Element does
