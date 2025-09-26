@@ -24,7 +24,7 @@ Date: August 2025
 """
 
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional, Tuple, TypeAlias, Iterator
 from xml.etree import ElementTree as ET
 import weakref
@@ -194,7 +194,7 @@ class Define:
 
         return el
 
-@dataclass(frozen=True)
+@dataclass
 class DefineRef:
     """ 
     Placeholder referencing a Define by label (created during parse_rows)
@@ -203,11 +203,12 @@ class DefineRef:
     # Allow multiple parent Questions; use WeakSet to avoid strong ref cycles
     parents: weakref.WeakSet[Question] = field(default_factory=weakref.WeakSet, repr=False)
 
-    def add_parent(self, q: Question) -> None:
-        self.parents.add(q)
-
+    @property
     def parent_list(self) -> tuple[Question, ...]:
         return tuple(self.parents)
+
+    def add_parent(self, q: Question) -> None:
+        self.parents.add(q)
 
 
 @dataclass

@@ -11,7 +11,6 @@ from typing import Set, Tuple, Iterator, List, Sequence, Optional, Dict, Any
 from survey_elements.modules import Module, Editable
 from survey_elements.models.questions import Question, Row
 from survey_elements.models.logic import Define, DefineRef
-# from survey_elements.parsing.xml_parser import required_defines
 
 
 @dataclass
@@ -29,7 +28,7 @@ class Survey:
 
     modules: List[Module] = field(default_factory=list)
 
-    created_defines: Dict[str, Define] = field(default_factory = dict)
+    user_defines: Dict[str, Define] = field(default_factory = dict) # user created defines (from UI)
 
     # Labels of the defines where the user needs to fill in the info for them
     ROW_PREFIXES: dict[str, str] = field(
@@ -90,14 +89,9 @@ class Survey:
         return tuple(d for m in self.modules for d in m.defines)
     
     @property
-    def required_defines(self) -> Set[Define]:
+    def required_defines(self) -> Tuple[Define]:
         """ Set of all required defines currently in the survey """
-        return {
-        d
-        for m in self.modules
-        for d in getattr(m, "defines", ())
-        if getattr(d, "label", None) in getattr(m, "ROW_PREFIXES", ())
-    }
+        return tuple(d for d in self.defines if getattr(d, "label", None) in getattr(self, "ROW_PREFIXES", ()))
 
     @property
     def required_defines_labels(self) -> Set[str]:
@@ -226,8 +220,9 @@ class Survey:
 
         final_define = Define(label=def_label, rows=def_rows)
         # Add to created_define dict
-        self.created_defines[def_label, final_define]
+        self.user_defines[def_label] = final_define
 
+    # TODO This is not the best way to do this but it works for now
     def resolve_inserts(self) -> None:
         """
         Replace DefineRef placeholders in queestion.rows with the rows from the corresponding Define.
@@ -237,11 +232,16 @@ class Survey:
             insert_rows = []
             for ref in question.define_refs:
                 label = ref.source
-                define_insert = dict.get(label, None)
-                if not define_insert:
-                    raise ValueError(f"Define {label} was not created")
-                insert_rows.append(define_insert.rows)
+                if label in self.ROW_PREFIXES:
+                    define_insert = self.user_defines.get(label, None)
+                    if not define_insert:
+                        raise ValueError(f"Define {label} was not created")
+                    insert_rows.append(define_insert.rows)
             if insert_rows:
+                # Log DefineRefs before resolve
+                if not question.historic_define_refs:
+                    question.historic_define_refs = question.define_refs
+                # Resolve Rows
                 question.rows = tuple(insert_rows)
 
     def list_defines(self) -> dict:

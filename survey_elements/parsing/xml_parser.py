@@ -725,15 +725,8 @@ _PARSERS = {
     "condition": parse_condition,
 }
 
-# Global dictionary of <define> elements by their label (populated by find_defines)
-# _DEFINES: dict[str, Define] = {}
-
 # Stack to show current path while parsing (for debugging)
 _PARSE_STACK: List[str] = []
-
-# De-duped set of define labels (from <insert source="..."/>)
-#_REQUIRED_DEFINES: set[str] = set()
-
 
 def _current_path() -> str:
     """Returns a strng reprresenting the current path in the XML being parsed, based on the _PARSE_STACK
@@ -742,7 +735,6 @@ def _current_path() -> str:
         str: A current path as a string
     """
     return " > ".join(_PARSE_STACK) or "<root>"
-
 
 def element_from_xml_element(xml_elm: ET.Element):
     """
@@ -770,45 +762,3 @@ def element_from_xml_element(xml_elm: ET.Element):
         raise ValueError(f"ERROR while parsing {_current_path()}: {e}")
     finally:
         _PARSE_STACK.pop()
-
-
-'''
-def required_defines() -> list[str]:
-    """ 
-    Return a de-duped list of all source labels from <insert source="xxx"/> - where xxx is the label of a required define
-    """
-    return _REQUIRED_DEFINES
-
-def clear_required_defines() -> None:
-    """
-    Clear the collected required defines
-    """
-    _REQUIRED_DEFINES.clear()
-
-'''
-
-# UNUSED
-# def find_defines(root_el: ET.Element) -> dict[str, Define]:
-#     """
-#     Search for all <define> elements in the XML and register them by their label (for lookup later)
-
-#     Args:
-#         root_el (ET.Element): The root ElementTree element (e.g. <survey>)
-#     Returns:
-#         dict[str, Define]: A dictionary of Define objects by their label
-#     """
-
-#     defs: dict[str, Define] = {}
-#     for el in root_el.iter():
-#         if el.tag == "define":
-#             label = el.get("label")
-#             print(label)
-#             # parse its rows
-#             rows = tuple(parse_row(child) for child in el)
-#             # create Define object and add to dictionary
-#             defs[label] = Define(label=label, rows=rows)
-
-#     # cache and return a copy
-#     _DEFINES.clear()
-#     _DEFINES.update(defs)
-#     return dict(defs)

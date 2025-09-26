@@ -18,11 +18,11 @@ Date: September 2025
 """
 
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, TypeAlias, List, Iterator, Tuple
 
 from survey_elements.models.enums import Mode
-from dataclasses import field
+from survey_elemets.utils.editables import EditableTemplate
 
 import xml.etree.ElementTree as ET
 
@@ -203,9 +203,32 @@ class HTML:
     Methods:
         to_xml_element() -> ET.Element: Convert to an XML element
     """
+    def __post_init__(self) -> None:
+        """ Functions called post initiation """
+        self._set_editable_template()
 
     label: str
     content: str
+
+    historic_content: str = ""
+    editable: bool = False # Whether the user is allowed to edit the label
+    editable_obj: EditableTemplate = None
+
+    def _set_editable_template(self) -> None:
+        """ Creates a EditableText class for the content """
+        self.editable_obj = (EditableTemplate(raw_template = self.content,
+                                                 start = r"{{",
+                                                 end = r"}}"))
+
+    def render_content(self):
+        """ Renders editable content with user changes """
+        if not self.editable:
+            return
+        if not self.historic_content:
+            # Log historic title
+            self.historic_content = self.content
+        # Override title
+        self.content = self.editable_obj.render()
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""

@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import xml.etree.ElementTree as ET
-from dataclasses import field
-from typing import Tuple, TYPE_CHECKING
-
+from typing import Callable, Dict, List, Optional, Sequence, Union, Tuple, Optional
+import re
 
 from survey_elements.models.enums import (
     Where,
@@ -15,7 +14,7 @@ from survey_elements.models.enums import (
 from survey_elements.utils.xml_helpers import _append_children
 from survey_elements.utils.xml_helpers import bool_bit, str_, csv
 from survey_elements.models.logic import DefineRef
-
+from survey_elemets.utils.editables import EditableTemplate
 
 """
 Defines the core data structures for survey questions and elements. 
@@ -44,7 +43,7 @@ Date: August 2025
 """
 
 
-@dataclass()
+@dataclass
 class Element:
     """
     Base class - all questions and elements contain these
@@ -134,7 +133,7 @@ class Element:
         return el
 
 
-@dataclass()
+@dataclass
 class Cell(Element):
     """
     Attributes for <row>, <col> and <choice> elements.
@@ -189,7 +188,7 @@ class Cell(Element):
     }
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, eq=False)
 class Question(Element):
     """
     The question attributes apply to <radio>, <select>, <checkbox>, <number>, <float>, <text> and <textarea> elements.
@@ -198,13 +197,24 @@ class Question(Element):
     Methods:
     - to_xml_element: Converts the object to an XML element
     """
+    __hash__ = object.__hash__ # create unique hash to identify each question instance
+
     def __post_init__(self) -> None:
+        """ Functions called post initiation """
         self._bind_define_refs() # Assign DefineRefs with self reference to DefineRef parent attribute
+        self._set_editable_template()
 
     # Mandatory elements
     title: str
 
-    # Optional elements
+    editable: bool = False # Whether the use is allowed to edit the question text
+    
+    editable_obj: Optional[EditableTemplate] = None
+    historic_title: Optional[str] = "" # Stores original title before render
+    start_delimiter: str = r"{{"
+    end_delimiter: str = r"}}"
+
+    # Optional xml elements
     comment: str | None = None
     below: str | None = None
     choiceCond: str | None = None
@@ -263,26 +273,38 @@ class Question(Element):
         "comment": ("comment", str_),  # <comment></comment>
     }
 
+    # Logs any previous DefineRefs if resolve has occured
+    historic_define_refs: Optional[Tuple[DefineRef, ...]] = None
+
     @property
     def define_refs(self) -> Tuple[DefineRef, ...]:
         """ Tuple of DefineRef instances within a questions rows """
-        # Local import at runtime to avoid circular imports
-        refs = []
-        for attr in ("rows"):
-            seq = getattr(self, attr, None)
-            if seq:
-                refs.extend(x for x in seq if isinstance(x, DefineRef))
-        return tuple(refs)
-
+        return tuple(r for r in getattr(self, "rows", ()) if isinstance(r, DefineRef))
+    
     def _bind_define_refs(self) -> None:
         """ Adds self to parent of instances of DefineRef """
-        for attr in ("rows"):
-            seq = getattr(self, attr, None)
-            if not seq:
-                continue
-            for item in seq:
-                if isinstance(item, DefineRef):
-                    item.add_parent(self)
+        seq = getattr(self, "define_refs", None)
+        if not seq:
+            return
+        for item in seq:
+            print("adding parent")
+            item.add_parent(q = self)
+
+    def _set_editable_template(self) -> None:
+        """ Creates a EditableText class for the question """
+        self.editable_obj = (EditableTemplate(raw_template = self.title,
+                                                 start = self.start_delimiter,
+                                                 end = self.end_delimiter))
+
+    def render_question(self):
+        """ Renders editable question with user changes """
+        if not self.editable:
+            return
+        if not self.historic_title:
+            # Log historic title
+            self.historic_title = self.title
+        # Override title
+        self.title = self.editable_obj.render()
 
     def to_xml_element(self) -> ET.Element:
         # 1) Build the base element + title/comment the way Element does
@@ -331,7 +353,7 @@ class Choice(Cell):
 # ------------- SPECIFIC QUESTION TYPES ------------- #
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, eq=False)
 class RadioQuestion(Question):
     """
     Attributes for <radio> questions (single-select). A <radio> question can contain <row> and <col> elements.
@@ -347,7 +369,7 @@ class RadioQuestion(Question):
     cols: tuple[Col, ...] = ()
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, eq=False)
 class AutoFill(Question):
     """
     Attributes for <autofill> questions] (for piping).
@@ -358,7 +380,7 @@ class AutoFill(Question):
     rows: tuple[Row, ...] = ()
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, eq=False)
 class CheckboxQuestion(Question):
     """
     Attributes for <checkbox> questions (multi-select)
@@ -374,7 +396,7 @@ class CheckboxQuestion(Question):
     cols: tuple[Col, ...] = ()
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, eq=False)
 class NumberQuestion(Question):
     """
     Attributes for <number> questions (numeric input).
@@ -389,7 +411,7 @@ class NumberQuestion(Question):
     cols: tuple[Col, ...] = ()
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, eq=False)
 class FloatQuestion(Question):
     """
     Attributes for <float> questions (decimal input).
@@ -404,7 +426,7 @@ class FloatQuestion(Question):
     cols: tuple[Col, ...] = ()
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, eq=False)
 class TextQuestion(Question):
     """
     Attributes for <text> questions (single-line text input).
@@ -419,7 +441,7 @@ class TextQuestion(Question):
     cols: tuple[Col, ...] = ()
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, eq=False)
 class TextAreaQuestion(Question):
     """
     Attributes for <textarea> questions (multi-line text input).
@@ -434,7 +456,7 @@ class TextAreaQuestion(Question):
     cols: tuple[Col, ...] = ()
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, eq=False)
 class SelectQuestion(Question):
     """
     Attributes for <select> questions (dropdown selection).
