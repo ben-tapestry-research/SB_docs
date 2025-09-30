@@ -94,4 +94,3 @@ class EditableTemplate:
         for t in self.tokens:
             out.append(t.text if isinstance(t, FixedText) else t.value or f"{self.start}{t.name}{self.end}")
         return "".join(out)
-    

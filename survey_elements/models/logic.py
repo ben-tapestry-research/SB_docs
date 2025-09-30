@@ -31,7 +31,7 @@ import weakref
 
 # Only import types at type-check time to avoid runtime circular imports
 if TYPE_CHECKING:
-    from .questions import *
+    from .questions import Question
     from .structural import *
 
 @dataclass
@@ -200,7 +200,7 @@ class DefineRef:
     Placeholder referencing a Define by label (created during parse_rows)
     """
     source: str
-    # Allow multiple parent Questions; use WeakSet to avoid strong ref cycles
+    # Parent Questions (weakset to avoid keeping question alive within self)
     parents: weakref.WeakSet[Question] = field(default_factory=weakref.WeakSet, repr=False)
 
     @property
@@ -224,6 +224,7 @@ class Terminate:
     label: str
     cond: str
     content: str
+    parent: Optional[Question | QuestionCluster] = None # associated Question or QuestionCluster class
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""

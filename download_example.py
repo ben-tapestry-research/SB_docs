@@ -21,21 +21,32 @@ module1: Module = load_module_from_project(module_title = "SM: Core Screening", 
 module2: Module = load_module_from_project(module_title = "XC: Core Demographics", project_path = "selfserve/2222/module_xc")
 module3: Module = load_module_from_project(module_title = "BP: Brand Perception", project_path = "selfserve/2222/module_cb")
 
-module3.HTMLs
-
 survey.add(module1)
 survey.add(module2)
 survey.add(module3)
 
+# Look at structure of survey
+for object in survey.objects:
+    print(object.__class__.__name__)
+
+# Example of Question Deletion
+# TODO At the moment it just deletes the question object, however, deletion of a question could also require deletion of
+#       other objects - therefore, these other objects need to be linked to the Question Object so we know to delete them
+#       as well
+for question in module1.questions:
+    question.label
+question_to_delete = module1.questions[2]
+module1.delete_object(question_to_delete)
+for question in survey.questions:
+    question.label
+
 # Example of Define Manipulation
-survey.required_defines_labels
-question = survey.questions[94] # This question has 'Brands' DefineRef
+survey.required_defines_sources # Need to create a 'BRANDS' list
+survey.get("module_cb").questions[28] # This question has 'Brands' DefineRef
 
 survey.create_define("BRANDS", ["Ikea", "Kellogs", "Simpsons"])
-survey.created_defines
-
-survey.resolve_inserts()
-question.define_refs[1].parent_list()
+survey.user_defines # stored here
+survey.resolve_inserts() # resolves 
 
 # Example of Question Manipulation
 question2 = survey.questions[3] # question is 'Which gender do you identify as?'
@@ -51,8 +62,19 @@ question2.editable_obj.set_value("identify as", "belong to")
 question2.render_question()
 question2.title # Which genders do you belong to
 
+# Can also do HTML #
+HTML1 = survey.HTMLs[0]
+HTML1.editable = True # Set the editable to true
+HTML1.content = r"{{Thanks}}! \n<br /><br />\nIn this section we {{look}} at different [pipe: ORG]."
+HTML1._set_editable_template()
+HTML1.editable_obj.editables
+HTML1.editable_obj.set_value("Thanks", "Not thanks")
+HTML1.editable_obj.set_value("look", "view")
+HTML1.editable_obj.render()
+HTML1.render_content()
+HTML1.content
 
-# Exmaple of Survey Manipulation
+# Exmaple of Module Manipulation
 survey.module_titles
 survey.swap(0,1)
 survey.reorder(project_code_order = ("module_sm", "module_xc"))

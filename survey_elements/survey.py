@@ -7,11 +7,12 @@ Date: September 2025
 """
 
 from dataclasses import dataclass, field
+from functools import cached_property
 from typing import Set, Tuple, Iterator, List, Sequence, Optional, Dict, Any
 from survey_elements.modules import Module, Editable
 from survey_elements.models.questions import Question, Row
 from survey_elements.models.logic import Define, DefineRef
-
+from survey_elements.models.structural import HTML
 
 @dataclass
 class Survey:
@@ -81,22 +82,30 @@ class Survey:
         return tuple(e for m in self.modules for e in m.editables)
 
     @property
+    def objects(self) -> Tuple[Any, ...]:
+        """
+        View of all internal objects inside all internal modules
+        :return: Tuple of all internal objects
+        """
+        # TODO Consider making this a @cached_property
+        return tuple(o for m in self.modules for o in m.objects)
+
+    @property
     def questions(self) -> Tuple[Question, ...]:
         return tuple(q for m in self.modules for q in m.questions)
+
+    @property
+    def HTMLs(self) -> Tuple[HTML, ...]:
+        return tuple(h for m in self.modules for h in m.HTMLs)
 
     @property
     def defines(self) -> Tuple[Define, ...]:
         return tuple(d for m in self.modules for d in m.defines)
     
     @property
-    def required_defines(self) -> Tuple[Define]:
-        """ Set of all required defines currently in the survey """
-        return tuple(d for d in self.defines if getattr(d, "label", None) in getattr(self, "ROW_PREFIXES", ()))
-
-    @property
-    def required_defines_labels(self) -> Set[str]:
-        """ Set of the labels (source) for all the required defines """
-        return {d.label for d in self.required_defines}
+    def required_defines_sources(self) -> Set[str]:
+        """ Set of the sources (labels) for all the required defines in the child modules"""
+        return {d for m in self.modules for d in m.required_define_sources}
  
     @property
     def define_refs(self) -> Tuple[DefineRef, ...]:
@@ -109,6 +118,11 @@ class Survey:
         """Create a mapping dictionary of its modules and child classes"""
         pass
 
+    @property
+    def ordered(self) -> Tuple[Module, ...]:
+        """Tuple view of modules in order."""
+        return tuple(self.modules)
+
     # -- Module Functions -- #
     def __len__(self) -> int:
         return len(self.modules)
@@ -118,11 +132,6 @@ class Survey:
 
     def __getitem__(self, idx: int) -> Module:
         return self.modules[idx]
-
-    @property
-    def ordered(self) -> Tuple[Module, ...]:
-        """Tuple view of modules in order."""
-        return tuple(self.modules)
 
     def index_of(self, project_code: str) -> int:
         """Find the index of a module by project_code; raises ValueError if not found."""
@@ -143,21 +152,33 @@ class Survey:
         """Append a module to the end; enforces unique project_code."""
         if self.dup_check(module.project_code):
             raise ValueError(f"Duplicate project_code '{module.project_code}'")
+        # Reset cached properties
+        if hasattr(self, "invalidate_cache"):
+            self.invalidate_cache()
         self.modules.append(module)
 
     def insert(self, index: int, module: Module) -> None:
         """Insert a module at a specific index; enforces unique project_code."""
         if self.dup_check(module.project_code):
             raise ValueError(f"Duplicate project_code '{module.project_code}'")
+        # Reset cached properties
+        if hasattr(self, "invalidate_cache"):
+            self.invalidate_cache()
         self.modules.insert(index, module)
 
     def remove_at(self, index: int) -> Module:
         """Remove and return the module at index."""
+        # Reset cached properties
+        if hasattr(self, "invalidate_cache"):
+            self.invalidate_cache()
         return self.modules.pop(index)
 
     def remove(self, project_code: str) -> Module:
         """Remove and return the module identified by project_code."""
         idx = self.index_of(project_code)
+        # Reset cached properties
+        if hasattr(self, "invalidate_cache"):
+            self.invalidate_cache()
         return self.modules.pop(idx)
 
     def move(self, old_index: int, new_index: int) -> None:
@@ -202,7 +223,7 @@ class Survey:
 
     def create_define(self, def_label: str, items: List[str]) -> None:
         """Create or replace an editable Define object with the given label and items."""
-        if def_label not in self.required_defines_labels:
+        if def_label not in self.required_defines_sources:
             raise ValueError(
                 f"Define with label {def_label} not in required defines for survey"
             )
@@ -244,6 +265,25 @@ class Survey:
                 # Resolve Rows
                 question.rows = tuple(insert_rows)
 
+    def invalidate_cache(self, cascade: bool = True, *names: str) -> None:
+        """
+        Invalidate this Survey's caches
+        Optionally cascade to modules.
+        
+        :param cascade: If true, trigger invalidate_cache in modules
+        :param names: Names of properties to invalidate
+        """
+        if not names:
+            names = () # names of @cached_property properties
+
+        for name in names:
+            self.__dict__.pop(name, None)
+        
+        if cascade:
+            for m in self.modules:
+                if hasattr(m, "invalidate_cache"):
+                    m.invalidate_cache(*names)
+    '''
     def list_defines(self) -> dict:
         """Return a mapping define_label -> source.
           - 'survey'  -> survey._defines (created/imported into survey)
@@ -266,3 +306,4 @@ class Survey:
                 else:
                     mapping[d.label] = f"module:{mod_name}"
         return mapping
+    '''

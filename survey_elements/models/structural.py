@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, TypeAlias, List, Iterator, Tuple
 
 from survey_elements.models.enums import Mode
-from survey_elemets.utils.editables import EditableTemplate
+from survey_elements.utils.editables import EditableTemplate
 
 import xml.etree.ElementTree as ET
 
@@ -41,8 +41,8 @@ class Note:
     Methods:
     to_xml_element() -> ET.Element: Convert to an XML element
     """
-
     content: str
+    parent: Optional[Question | QuestionCluster] = None # associated Question or QuestionCluster class
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
@@ -60,7 +60,7 @@ class Suspend:
     Methods:
         to_xml_element() -> ET.Element: Convert to an XML element
     """
-    
+    parent: Optional[Question | QuestionCluster] = None # associated Question or QuestionCluster class
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
@@ -79,6 +79,7 @@ class Exec:
 
     content: str
     when: str | None = None
+    parent: Optional[Question | QuestionCluster] = None # associated Question or QuestionCluster class
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
@@ -225,9 +226,9 @@ class HTML:
         if not self.editable:
             return
         if not self.historic_content:
-            # Log historic title
+            # Log historic content
             self.historic_content = self.content
-        # Override title
+        # Override content
         self.content = self.editable_obj.render()
 
     def to_xml_element(self) -> ET.Element:

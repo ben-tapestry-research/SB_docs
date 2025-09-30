@@ -1,21 +1,3 @@
-from dataclasses import dataclass, field
-import xml.etree.ElementTree as ET
-from typing import Callable, Dict, List, Optional, Sequence, Union, Tuple, Optional
-import re
-
-from survey_elements.models.enums import (
-    Where,
-    Grouping,
-    Legend,
-    RowColChoiceShuffle,
-    Shuffle,
-    Sort,
-)
-from survey_elements.utils.xml_helpers import _append_children
-from survey_elements.utils.xml_helpers import bool_bit, str_, csv
-from survey_elements.models.logic import DefineRef
-from survey_elemets.utils.editables import EditableTemplate
-
 """
 Defines the core data structures for survey questions and elements. 
 Each class mirrors a Decipher survey element, with attributes corresponding to XML attributes.
@@ -26,6 +8,7 @@ Definitions: https://forstasurveys.zendesk.com/hc/en-us/articles/4409469868315-O
 Classes:
 - Element: Base class for all survey elements.
 - Cell: Represents <row>, <col>, and <choice> elements.
+- QuestionCluster: Handles a group of questions. 
 - Question: Base class for all question types.
 - Row: Represents a <row> element.
 - Col: Represents a <col> element.
@@ -41,6 +24,28 @@ Classes:
 Author: Ben Andrews
 Date: August 2025
 """
+from dataclasses import dataclass, field
+import xml.etree.ElementTree as ET
+from typing import Callable, Dict, List, Optional, Sequence, Union, Tuple, Optional, Any, TYPE_CHECKING
+import re
+
+from survey_elements.models.enums import (
+    Where,
+    Grouping,
+    Legend,
+    RowColChoiceShuffle,
+    Shuffle,
+    Sort,
+)
+from survey_elements.utils.xml_helpers import _append_children
+from survey_elements.utils.xml_helpers import bool_bit, str_, csv
+from survey_elements.models.logic import DefineRef, Terminate
+from survey_elements.models.structural import Suspend, Exec, Note, HTML, Block
+from survey_elements.utils.editables import EditableTemplate
+
+if TYPE_CHECKING:
+    from .logic import *
+    from .questions import *
 
 
 @dataclass
@@ -187,6 +192,47 @@ class Cell(Element):
         "averages": bool_bit,
     }
 
+@dataclass(kw_only=True, eq=False)
+class QuestionCluster:
+    """
+    A cluster of Questions that coexist together
+    """
+    __hash__ = object.__hash__ # create unique hash to identify each instance
+
+    children: Tuple[Any, ...] = ()
+
+    @property
+    def questions(self) -> Tuple["Question", ...]:
+        return self._filter_children(Question)
+    
+    @property
+    def suspends(self) -> Tuple[Suspend, ...]:
+        return self._filter_children(Suspend)
+    
+    @property
+    def execs(self) -> Tuple[Exec, ...]:
+        return self._filter_children(Exec)
+    
+    @property
+    def terminates(self) -> Tuple[Terminate, ...]:
+        return self._filter_children(Terminate)
+    
+    @property
+    def blocks(self) -> Tuple[Block, ...]:
+        return self._filter_children(Block)
+    
+    @property
+    def HTMLs(self) -> Tuple[HTML, ...]:
+        return self._filter_children(HTML)
+    
+    @property
+    def notes(self) -> Tuple[Note, ...]:
+        return self._filter_children(Note)
+
+    def _filter_children(self, *types: Any) -> Tuple[Any, ...]:
+        """Filter the editables tuple by isinstance against provided types."""
+        return tuple(e for e in self.children if isinstance(e, types))
+
 
 @dataclass(kw_only=True, eq=False)
 class Question(Element):
@@ -197,6 +243,7 @@ class Question(Element):
     Methods:
     - to_xml_element: Converts the object to an XML element
     """
+    # TODO Add links to Suspend, Exec, Terminate, Note and Block objects that linked to this class
     __hash__ = object.__hash__ # create unique hash to identify each question instance
 
     def __post_init__(self) -> None:
@@ -214,6 +261,7 @@ class Question(Element):
     start_delimiter: str = r"{{"
     end_delimiter: str = r"}}"
 
+    parent_cluster: Optional[QuestionCluster] = None 
     # Optional xml elements
     comment: str | None = None
     below: str | None = None

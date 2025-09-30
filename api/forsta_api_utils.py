@@ -1,3 +1,11 @@
+"""
+Name: forsta_api_utils.py
+Author: Ben
+Date: September 2025
+
+Handles verifying forsta API and pulling data
+
+"""
 from pathlib import Path
 import sys
 import os
@@ -11,6 +19,8 @@ import openpyxl
 import string
 import secrets
 from typing import List, Dict
+
+# TODO Add option to pull individual questions
 
 API_PREFIX = f"/surveys"
 
