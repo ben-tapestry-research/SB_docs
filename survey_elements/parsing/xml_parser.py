@@ -77,9 +77,19 @@ def _allowed_param_names(cls):
 
 # ------------ QUESTION TYPES ------------------
 def question_base(el):
+    # parse child exec element (exec is a child element, not an attribute)
+    exec_el = el.find("exec")
+    if exec_el is not None:
+        exec_obj = Exec(content=exec_el.text or "", when=_attr(exec_el, "when"))
+    else:
+        exec_obj = None
+
+    ss_val = _attr(el, "ss:listDisplay")
+    print(f"[DEBUG] parsing <{el.tag} label={_attr(el,'label')}> ss:listDisplay={ss_val!r}")
+
     return {
         "label": _attr(el, "label"),
-        "title": _attr(el, "title"),
+        "title": _tag_text(el, "title"),
         "rows": parse_rows(el),
         "cols": parse_cols(el),
         "choices": parse_choices(el),
@@ -88,6 +98,8 @@ def question_base(el):
         "randomize": _bit(el, "randomize"),
         "where": _parse_enum_set(el, "where", Where),
         "optional": _bit(el, "optional"),
+        "exec": exec_obj,
+        "ss_listDisplay": ss_val,
         "atleast": _bit(el, "atleast"),
         "size": _attr(el, "size"),
         "verify": _attr(el, "verify"),
@@ -105,6 +117,8 @@ def element_base(el):
         "randomize": _bit(el, "randomize"),
         "where": _parse_enum_set(el, "where", Where),
         "optional": _bit(el, "optional"),
+        "alt": _attr(el, "alt"),
+        "value": _attr(el, "value")
     }
 
 
@@ -208,7 +222,7 @@ def parse_block(block_el: ET.Element) -> Block:
             raise ValueError(
                 f"ERROR PARSING BLOCK {_attr(block_el, 'label')}. Found {child.tag} element in a block that does not have a parser"
             )
-    return Block(label=_attr(block_el, "label"), children=tuple(children))
+    return Block(label=_attr(block_el, "label"), cond=_attr(block_el, "cond"), children=tuple(children))
 
 
 def parse_note(note_el: ET.Element) -> Note:
@@ -248,7 +262,8 @@ def parse_exec(exec_el: ET.Element) -> Exec:
         Exec: A Exec object
     """
     content = exec_el.text
-    return Exec(content=content)
+    when = _attr(exec_el, "when")
+    return Exec(content=content, when=when)
 
 
 def parse_html(html_el: ET.Element) -> HTML:

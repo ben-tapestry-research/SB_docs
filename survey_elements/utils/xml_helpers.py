@@ -1,16 +1,30 @@
 import xml.etree.ElementTree as ET
+import copy
 
 
-def _attr(el: ET, name: str, default="") -> str:
-    """ Returns the value of a given attribute from an ElementTree
-
-    Args:
-        el (ET): The ElementTree object to search
-        name (str): The name of the attribute to fetch
-    Returns:
-        str: The value of the attribute, or None if it does not exist
-    """
-    return el.attrib.get(name, default)
+def _attr(el, name: str, default=None):
+    """Get attribute by name. Accepts names like 'ss:listDisplay' and will match
+    either the literal attribute key or any attribute whose local-name equals the
+    part after the colon (works with '{uri}local' keys used by ElementTree)."""
+    # try direct lookup first
+    if name in el.attrib:
+        return el.attrib[name]
+    # try Element.get too (same as above but covers some ET variants)
+    v = el.get(name)
+    if v is not None:
+        return v
+    # if name has a colon, attempt to match by local-name
+    if ":" in name:
+        _, local = name.split(":", 1)
+        for k, val in el.attrib.items():
+            # match either plain local or '{ns}local' style
+            if k == local or k.endswith("}" + local) or k.split("}")[-1] == local:
+                return val
+    # fallback to trying local name directly
+    for k, val in el.attrib.items():
+        if k == name:
+            return val
+    return default
 
 
 def _bit(el: ET, attr_name: str):  # returns bool | None
@@ -59,23 +73,31 @@ def _append_children(parent: ET.Element, children) -> None:
         parent.append(child.to_xml_element())
 
 
+def _et_indent(elem: ET.Element, level: int = 0, indent_str: str = "  ") -> None:
+    """In-place pretty indent for ElementTree elements."""
+    i = "\n" + (level * indent_str)
+    if len(elem):
+        if elem.text is None or not elem.text.strip():
+            elem.text = i + indent_str
+        for child in elem:
+            _et_indent(child, level + 1, indent_str)
+        if elem.tail is None or not elem.tail.strip():
+            elem.tail = i
+    else:
+        if elem.tail is None or not elem.tail.strip():
+            elem.tail = i
+
+
 def to_xml_string(el: ET.Element, pretty: bool = False) -> str:
-    """ 
-    Converts an ElementTree element back into an XML string
-    Args:
-        el (ET.Element): The ElementTree element to convert
-        pretty (bool, optional): Whether to pretty-print the XML. Defaults to False.
-        Returns:
-        str: The XML string
-    """
-    xml_string = ET.tostring(el, encoding="unicode")
+    """Converts an ElementTree element back into an XML string. Uses ET indentation when pretty=True."""
     if not pretty:
-        return xml_string
-    try:
-        from xml.dom import minidom
-        return minidom.parseString(xml_string).toprettyxml(indent="  ")
-    except Exception:
-        return xml_string
+        return ET.tostring(el, encoding="unicode")
+
+    # work on a deep copy so original tree/tails are not mutated
+    el_copy = copy.deepcopy(el)
+    _et_indent(el_copy)
+    return ET.tostring(el_copy, encoding="unicode")
+
 
 def _int_attr(el: ET.Element, name: str, default: int) -> int:
     """ Fetches an integer attribute from an ElementTree element, returning a default if not found or invalid

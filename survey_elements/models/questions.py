@@ -220,7 +220,7 @@ class Question(Element):
     start_delimiter: str = r"{{"
     end_delimiter: str = r"}}"
 
-    parent_cluster: Optional[QuestionCluster] = None 
+    #parent_cluster: Optional[QuestionCluster] = None 
     # Optional xml elements
     comment: str | None = None
     below: str | None = None
@@ -231,7 +231,7 @@ class Question(Element):
     colShuffle: bool | None = None
     cond: str | None = None
 
-    exec: str | None = None
+    exec: Exec | None = None
     grouping: set[Grouping] = field(default_factory=set)
     optional: bool | None = None
     rightOf: str | None = None
@@ -247,6 +247,8 @@ class Question(Element):
     values: str | None = None
     virtual: str | None = None
 
+    ss_listDisplay: str | None = None
+
     # For each field above, how to turn it into an XML attribute string
     # If the value is None, it will not be included in the XML element.
     ATTR_MAP = {
@@ -258,7 +260,6 @@ class Question(Element):
         "colLegend": str_,
         "colShuffle": bool_bit,
         "cond": str_,
-        "exec": str_,
         "grouping": csv,
         "optional": bool_bit,
         "rightOf": str_,
@@ -273,6 +274,8 @@ class Question(Element):
         "uses": str_,
         "values": str_,
         "virtual": str_,
+        # map python attr ss_listDisplay -> XML attribute "ss:listDisplay"
+        "ss_listDisplay": ("ss:listDisplay", str_),
     }
 
     CHILD_TEXT_MAP = {
@@ -316,6 +319,19 @@ class Question(Element):
     def to_xml_element(self) -> ET.Element:
         # 1) Build the base element + title/comment the way Element does
         el = super().to_xml_element()
+
+        # 1.5) append exec child if present (Exec dataclass has to_xml_element)
+        exec_obj = getattr(self, "exec", None)
+        if exec_obj is not None:
+            try:
+                el.append(exec_obj.to_xml_element())
+            except Exception:
+                # fallback: write raw string content if exec is not an Exec instance
+                if isinstance(exec_obj, str):
+                    ET.SubElement(el, "exec").text = exec_obj
+                else:
+                    raise
+
         # 2) Append rows/cols/choices if they exist
         if hasattr(self, "rows"):
             _append_children(el, getattr(self, "rows"))

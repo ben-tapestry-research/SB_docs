@@ -41,8 +41,9 @@ class Note:
     Methods:
     to_xml_element() -> ET.Element: Convert to an XML element
     """
+
     content: str
-    parent: Optional[Question] = None # associated Question
+    parent: Optional[Question] = None  # associated Question
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
@@ -51,7 +52,7 @@ class Note:
         return el
 
 
-@dataclass(frozen=True, eq = False)
+@dataclass(frozen=True, eq=False)
 class Suspend:
     """
     A <suspend> tag (page break)
@@ -60,9 +61,10 @@ class Suspend:
     Methods:
         to_xml_element() -> ET.Element: Convert to an XML element
     """
-    __hash__ = object.__hash__ # create unique hash to identify each instance
 
-    parent: Optional[Question] = None # associated Question
+    __hash__ = object.__hash__  # create unique hash to identify each instance
+
+    parent: Optional[Question] = None  # associated Question
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
@@ -81,11 +83,15 @@ class Exec:
 
     content: str
     when: str | None = None
-    parent: Optional[Question] = None # associated Question
+    parent: Optional[Question] = None  # associated Question
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
-        el = ET.Element("exec")
+
+        attrs = {}
+        if self.when:
+            attrs["when"] = self.when
+        el = ET.Element("exec", attrs)
         el.text = self.content
         return el
 
@@ -101,6 +107,7 @@ class Block:
     """
 
     label: str | None = None
+    cond: str | None = None
     # Define the alias as a STRING so it’s not evaluated at runtime
     BlockChild: TypeAlias = (
         "RadioQuestion | CheckboxQuestion | NumberQuestion | FloatQuestion | "
@@ -113,6 +120,7 @@ class Block:
         """Convert to an XML element"""
         attrs = {}
         attrs["label"] = self.label
+        attrs["cond"] = self.cond
         el = ET.Element("block", attrs)
 
         for child in self.children:
@@ -129,7 +137,7 @@ class Res:
     """
     A <res> tag (used to create reusable text resources)
     https://forstasurveys.zendesk.com/hc/en-us/articles/4409469873563-Resource-Tag-Create-Translatable-Resources
-    
+
     Methods:
         to_xml_element() -> ET.Element: Convert to an XML element
     """
@@ -150,7 +158,7 @@ class Style:
     """
     A <style> tag
     https://forstasurveys.zendesk.com/hc/en-us/articles/4409461374491-XML-Style-System
-    
+
     Methods:
         to_xml_element() -> ET.Element: Convert to an XML element
     """
@@ -206,25 +214,26 @@ class HTML:
     Methods:
         to_xml_element() -> ET.Element: Convert to an XML element
     """
+
     def __post_init__(self) -> None:
-        """ Functions called post initiation """
+        """Functions called post initiation"""
         self._set_editable_template()
 
     label: str
     content: str
 
     historic_content: str = ""
-    editable: bool = False # Whether the user is allowed to edit the label
+    editable: bool = False  # Whether the user is allowed to edit the label
     editable_obj: EditableTemplate = None
 
     def _set_editable_template(self) -> None:
-        """ Creates a EditableText class for the content """
-        self.editable_obj = (EditableTemplate(raw_template = self.content,
-                                                 start = r"{{",
-                                                 end = r"}}"))
+        """Creates a EditableText class for the content"""
+        self.editable_obj = EditableTemplate(
+            raw_template=self.content, start=r"{{", end=r"}}"
+        )
 
     def render_content(self):
-        """ Renders editable content with user changes """
+        """Renders editable content with user changes"""
         if not self.editable:
             return
         if not self.historic_content:
