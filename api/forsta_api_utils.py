@@ -441,6 +441,7 @@ def fetch_modules() -> Dict[str,str]:
 
     :return project_dict: A dictionary containing the projects and their metadata 
     """
+    print("fetching mods")
     forsta_api_login()
     # See: https://docs.developer.focusvision.com/docs/decipher/api#tag/Surveys
     survey_list = api.get(
