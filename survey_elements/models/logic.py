@@ -224,7 +224,7 @@ class Terminate:
     label: str
     cond: str
     content: str
-    parent: Optional[Question | QuestionCluster] = None # associated Question or QuestionCluster class
+    parents: Optional[Question] = None # associated Questions
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""

@@ -192,47 +192,6 @@ class Cell(Element):
         "averages": bool_bit,
     }
 
-@dataclass(kw_only=True, eq=False)
-class QuestionCluster:
-    """
-    A cluster of Questions that coexist together
-    """
-    __hash__ = object.__hash__ # create unique hash to identify each instance
-
-    children: Tuple[Any, ...] = ()
-
-    @property
-    def questions(self) -> Tuple["Question", ...]:
-        return self._filter_children(Question)
-    
-    @property
-    def suspends(self) -> Tuple[Suspend, ...]:
-        return self._filter_children(Suspend)
-    
-    @property
-    def execs(self) -> Tuple[Exec, ...]:
-        return self._filter_children(Exec)
-    
-    @property
-    def terminates(self) -> Tuple[Terminate, ...]:
-        return self._filter_children(Terminate)
-    
-    @property
-    def blocks(self) -> Tuple[Block, ...]:
-        return self._filter_children(Block)
-    
-    @property
-    def HTMLs(self) -> Tuple[HTML, ...]:
-        return self._filter_children(HTML)
-    
-    @property
-    def notes(self) -> Tuple[Note, ...]:
-        return self._filter_children(Note)
-
-    def _filter_children(self, *types: Any) -> Tuple[Any, ...]:
-        """Filter the editables tuple by isinstance against provided types."""
-        return tuple(e for e in self.children if isinstance(e, types))
-
 
 @dataclass(kw_only=True, eq=False)
 class Question(Element):

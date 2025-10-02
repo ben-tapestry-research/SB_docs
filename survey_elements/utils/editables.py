@@ -80,16 +80,23 @@ class EditableTemplate:
 
     @property
     def editables(self) -> Dict[str, EditableText]:
-        """ The editable tokens """
+        """ 
+        The editable tokens 
+        :return: Dictionary of the name (key) and then EditableText token (value).
+        """
         return {t.name: t for t in self.tokens if isinstance(t, EditableText)}
 
     def set_value(self, name: str, value: str) -> None:
-        """ Change editable token """
+        """ Change editable tokens value property"""
         if name in self.editables:
             self.editables[name].value = value
 
     def render(self) -> str:
-        """ Render question with edits """
+        """ 
+        Render question with edits 
+        
+        :return: Final joined string of edited and fixed text
+        """
         out = []
         for t in self.tokens:
             out.append(t.text if isinstance(t, FixedText) else t.value or f"{self.start}{t.name}{self.end}")
