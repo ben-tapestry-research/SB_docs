@@ -1,97 +1,93 @@
 <?xml version="1.0" ?>
 <block label="module_sm">
-  <radio label="DUM_COUNTRY" where="execute,report,survey">
-    <title>Demography: Country</title>
-    <row label="r32" alt="Argentina">Argentina</row>
-    <row label="r36" alt="Australia">Australia</row>
-    <row label="r40" alt="Austria">Austria</row>
-    <row label="r56" alt="Belgium">Belgium</row>
-    <row label="r76" alt="Brazil">Brazil</row>
-    <row label="r124" alt="Canada">Canada</row>
-    <row label="r152" alt="Chile">Chile</row>
-    <row label="r156" alt="China">China</row>
-    <row label="r170" alt="Colombia">Colombia</row>
-    <row label="r208" alt="Denmark">Denmark</row>
-    <row label="r250" alt="France">France</row>
-    <row label="r276" alt="Germany">Germany</row>
-    <row label="r348" alt="Hungary">Hungary</row>
-    <row label="r356" alt="India">India</row>
-    <row label="r360" alt="Indonesia">Indonesia</row>
-    <row label="r372" alt="Ireland">Ireland</row>
-    <row label="r380" alt="Italy">Italy</row>
-    <row label="r392" alt="Japan">Japan</row>
-    <row label="r682" alt="Saudi Arabia">Saudi Arabia</row>
-    <row label="r458" alt="Malaysia">Malaysia</row>
-    <row label="r484" alt="Mexico">Mexico</row>
-    <row label="r528" alt="Netherlands">Netherlands</row>
-    <row label="r578" alt="Norway">Norway</row>
-    <row label="r608" alt="Philippines">Philippines</row>
-    <row label="r616" alt="Poland">Poland</row>
-    <row label="r620" alt="Portugal">Portugal</row>
-    <row label="r642" alt="Romania">Romania</row>
-    <row label="r702" alt="Singapore">Singapore</row>
-    <row label="r710" alt="South Africa">South Africa</row>
-    <row label="r410" alt="South Korea">South Korea</row>
-    <row label="r724" alt="Spain">Spain</row>
-    <row label="r752" alt="Sweden">Sweden</row>
-    <row label="r792" alt="Turkey">Turkey</row>
-    <row label="r784" alt="UAE">UAE</row>
-    <row label="r826" alt="UK">UK</row>
-    <row label="r840" alt="USA">USA</row>
+  <radio label="DUM_COUNTRY" where="execute,report,survey" cond="not (co in ['',None])">
+    <row label="r32">Argentina</row>
+    <row label="r36">Australia</row>
+    <row label="r40">Austria</row>
+    <row label="r56">Belgium</row>
+    <row label="r76">Brazil</row>
+    <row label="r124">Canada</row>
+    <row label="r152">Chile</row>
+    <row label="r156">China</row>
+    <row label="r170">Colombia</row>
+    <row label="r208">Denmark</row>
+    <row label="r250">France</row>
+    <row label="r276">Germany</row>
+    <row label="r348">Hungary</row>
+    <row label="r356">India</row>
+    <row label="r360">Indonesia</row>
+    <row label="r372">Ireland</row>
+    <row label="r380">Italy</row>
+    <row label="r392">Japan</row>
+    <row label="r682">Saudi Arabia</row>
+    <row label="r458">Malaysia</row>
+    <row label="r484">Mexico</row>
+    <row label="r528">Netherlands</row>
+    <row label="r578">Norway</row>
+    <row label="r608">Philippines</row>
+    <row label="r616">Poland</row>
+    <row label="r620">Portugal</row>
+    <row label="r642">Romania</row>
+    <row label="r702">Singapore</row>
+    <row label="r710">South Africa</row>
+    <row label="r410">South Korea</row>
+    <row label="r724">Spain</row>
+    <row label="r752">Sweden</row>
+    <row label="r792">Turkey</row>
+    <row label="r784">UAE</row>
+    <row label="r826">UK</row>
+    <row label="r840">USA</row>
   </radio>
   <suspend/>
-  <radio label="DUM_PARAMOUNT_STUDY" where="execute,report,survey">
-    <title>Paramount study flag</title>
+  <radio label="DUM_PARAMOUNT_STUDY" where="execute,report,survey" optional="1">
     <row label="para">Paramount study</row>
     <row label="non_para">Non Paramount study</row>
   </radio>
   <suspend/>
   <radio label="COUNTRY">
-    <title>In which country do you live?</title>
     <comment>${res.SP1}</comment>
-    <row label="r32" alt="Argentina">Argentina</row>
-    <row label="r36" alt="Australia">Australia</row>
-    <row label="r40" alt="Austria">Austria</row>
-    <row label="r56" alt="Belgium">Belgium</row>
-    <row label="r76" alt="Brazil">Brazil</row>
-    <row label="r124" alt="Canada">Canada</row>
-    <row label="r152" alt="Chile">Chile</row>
-    <row label="r156" alt="China">China</row>
-    <row label="r170" alt="Colombia">Colombia</row>
-    <row label="r208" alt="Denmark">Denmark</row>
-    <row label="r250" alt="France">France</row>
-    <row label="r276" alt="Germany">Germany</row>
-    <row label="r348" alt="Hungary">Hungary</row>
-    <row label="r356" alt="India">India</row>
-    <row label="r360" alt="Indonesia">Indonesia</row>
-    <row label="r372" alt="Ireland">Ireland</row>
-    <row label="r380" alt="Italy">Italy</row>
-    <row label="r392" alt="Japan">Japan</row>
-    <row label="r682" alt="Saudi Arabia">Saudi Arabia</row>
-    <row label="r458" alt="Malaysia">Malaysia</row>
-    <row label="r484" alt="Mexico">Mexico</row>
-    <row label="r528" alt="Netherlands">Netherlands</row>
-    <row label="r578" alt="Norway">Norway</row>
-    <row label="r608" alt="Philippines">Philippines</row>
-    <row label="r616" alt="Poland">Poland</row>
-    <row label="r620" alt="Portugal">Portugal</row>
-    <row label="r642" alt="Romania">Romania</row>
-    <row label="r702" alt="Singapore">Singapore</row>
-    <row label="r710" alt="South Africa">South Africa</row>
-    <row label="r410" alt="South Korea">South Korea</row>
-    <row label="r724" alt="Spain">Spain</row>
-    <row label="r752" alt="Sweden">Sweden</row>
-    <row label="r792" alt="Turkey">Turkey</row>
-    <row label="r784" alt="UAE">UAE</row>
-    <row label="r826" alt="UK">UK</row>
-    <row label="r840" alt="USA">USA</row>
+    <row label="r32">Argentina</row>
+    <row label="r36">Australia</row>
+    <row label="r40">Austria</row>
+    <row label="r56">Belgium</row>
+    <row label="r76">Brazil</row>
+    <row label="r124">Canada</row>
+    <row label="r152">Chile</row>
+    <row label="r156">China</row>
+    <row label="r170">Colombia</row>
+    <row label="r208">Denmark</row>
+    <row label="r250">France</row>
+    <row label="r276">Germany</row>
+    <row label="r348">Hungary</row>
+    <row label="r356">India</row>
+    <row label="r360">Indonesia</row>
+    <row label="r372">Ireland</row>
+    <row label="r380">Italy</row>
+    <row label="r392">Japan</row>
+    <row label="r682">Saudi Arabia</row>
+    <row label="r458">Malaysia</row>
+    <row label="r484">Mexico</row>
+    <row label="r528">Netherlands</row>
+    <row label="r578">Norway</row>
+    <row label="r608">Philippines</row>
+    <row label="r616">Poland</row>
+    <row label="r620">Portugal</row>
+    <row label="r642">Romania</row>
+    <row label="r702">Singapore</row>
+    <row label="r710">South Africa</row>
+    <row label="r410">South Korea</row>
+    <row label="r724">Spain</row>
+    <row label="r752">Sweden</row>
+    <row label="r792">Turkey</row>
+    <row label="r784">UAE</row>
+    <row label="r826">UK</row>
+    <row label="r840">USA</row>
     <row label="r98">Other</row>
   </radio>
   <suspend/>
   <terminate label="TERM_COUNTRY" cond="COUNTRY.selected.label != DUM_COUNTRY.selected.label">COUNTRY: No match</terminate>
   <suspend/>
-  <radio label="GENDER_FULL">
-    <title>Which gender do you identify as?</title>
+  <radio label="GENDER_FULL" cond="DUM_PARAMOUNT_STUDY.non_para">
     <comment>${res.SP1}</comment>
     <row label="r1">Man</row>
     <row label="r2">Transgender Man</row>
@@ -102,8 +98,7 @@
     <row label="r99">Prefer not to say</row>
   </radio>
   <suspend/>
-  <radio label="GENDER_SHORT">
-    <title>Which gender do you identify as?</title>
+  <radio label="GENDER_SHORT" cond="DUM_PARAMOUNT_STUDY.para">
     <comment>${res.SP1}</comment>
     <row label="r1">Male</row>
     <row label="r2">Female</row>
@@ -111,21 +106,18 @@
   </radio>
   <suspend/>
   <radio label="DUM_GENDER" where="execute,report,survey">
-    <title>Gender dummy</title>
     <row label="r1">Male = CODES 1-2 AT GENDER_FULL OR 1 AT GENDER SHORT</row>
     <row label="r2">Female = CODES 3-4 AT GENDER_FULL OR 2 AT GENDER SHORT</row>
     <row label="r3">Other/prefer not to say = CODE 5-7 AT GENDER_FULL OR 3 AT GENDER SHORT</row>
   </radio>
   <suspend/>
-  <number label="AGE">
-    <title>What is your age?</title>
+  <number label="AGE" optional="0">
     <comment>Please enter a number.</comment>
   </number>
   <suspend/>
   <terminate label="TERM_AGE" cond="AGE.check('&lt;18')">AGE: Less than 18</terminate>
   <suspend/>
   <radio label="DUM_AGEBREAK" where="execute,report,survey">
-    <title>Age dummy</title>
     <row label="r1">16-24</row>
     <row label="r2">25-34</row>
     <row label="r3">35-44</row>
@@ -147,11 +139,7 @@ def zipCodeFile(fname, zipHeader):
 #This is creating a variable (ZIPCODES) that contains our zip code database.
 UK_ZIPCODES = zipCodeFile("UK_Postcodes_UPDATED.dat", "Postcode")
     </exec>
-    <text label="POSTCODE">
-      <title>Please enter the &lt;strong&gt;first part&lt;/strong&gt; of your post code below. To be clear, we only want the part of your post code before the space! 
-&lt;br /&gt;&lt;br /&gt;
-Please use caps lock – text box is case sensitive
-</title>
+    <text label="POSTCODE" cond="POSTCODE.n99" optional="0">
       <row label="r1">First part of postcode:</row>
     </text>
     <suspend/>
@@ -163,8 +151,7 @@ if RECORD:
   DUM_POSTCODE_INFO.r3.val = RECORD['region/country']
     </exec>
     <suspend/>
-    <text label="DUM_POSTCODE_INFO" where="execute,report,survey">
-      <title>Location information from postcode</title>
+    <text label="DUM_POSTCODE_INFO" randomize="0" where="execute,report,survey">
       <row label="r1">Postcode</row>
       <row label="r2">Area</row>
       <row label="r3">Region / Country</row>
@@ -183,8 +170,7 @@ if DUM_POSTCODE_INFO.r3.val is not None:
     print "coded yorkshire"
     REGION_UK.val = REGION_UK.r3.index
     </exec>
-    <radio label="REGION_UK">
-      <title>In which of the following regions do you live?</title>
+    <radio label="REGION_UK" cond="POSTCODE.n99">
       <comment>${res.SP1}</comment>
       <row label="r1">North East England</row>
       <row label="r2">North West England</row>
@@ -202,9 +188,7 @@ if DUM_POSTCODE_INFO.r3.val is not None:
     <suspend/>
   </block>
   <block label="US_ZIPCODE">
-    <text label="STD_ZIPCODE_US">
-      <title>Please enter your 5-digit ZIP code below.</title>
-    </text>
+    <text label="STD_ZIPCODE_US" optional="0"/>
     <suspend/>
     <exec>
 def zipCodeFile(fname, zipHeader):
@@ -234,8 +218,7 @@ if RECORD:
   DUM_Zipcode.r9.val = RECORD['censusregionname']
     </exec>
     <suspend/>
-    <text label="DUM_Zipcode" where="execute,report,survey">
-      <title>Hidden Marker: US city name</title>
+    <text label="DUM_Zipcode" randomize="0" where="execute,report,survey">
       <comment>Please enter your answer</comment>
       <row label="r1">CityName</row>
       <row label="r2">MSA</row>
@@ -267,8 +250,7 @@ for eachrow in DUM_REGION.rows:
        DUM_REGION.val = DUM_REGION.r5.index
     </exec>
     <suspend/>
-    <radio label="DUM_State" randomize="0" where="execute,report,survey">
-      <title>Hidden Marker : US State</title>
+    <radio label="DUM_State" randomize="0" where="execute,report,survey" optional="1">
       <comment>Please select an answer</comment>
       <row label="r1">New York</row>
       <row label="r2">Massachusetts</row>
@@ -322,8 +304,7 @@ for eachrow in DUM_REGION.rows:
       <row label="r50">Washington</row>
       <row label="r51">Alaska</row>
     </radio>
-    <radio label="DUM_CensusDivision" where="execute,report,survey">
-      <title>Hidden Marker : US Census Division&amp;nbsp;</title>
+    <radio label="DUM_CensusDivision" where="execute,report,survey" optional="1">
       <comment>Please select an answer</comment>
       <row label="r1">MIDDLE ATLANTIC</row>
       <row label="r2">NEW ENGLAND</row>
@@ -335,8 +316,7 @@ for eachrow in DUM_REGION.rows:
       <row label="r8">WEST SOUTH CENTRAL</row>
       <row label="r9">PACIFIC</row>
     </radio>
-    <radio label="DUM_REGION" where="execute,report,survey">
-      <title>CODE REGION BASED ON ZIP CODE</title>
+    <radio label="DUM_REGION" where="execute,report,survey" optional="1">
       <comment>Please select an answer</comment>
       <row label="r1">NORTHEAST</row>
       <row label="r2">MIDWEST</row>
@@ -348,7 +328,6 @@ for eachrow in DUM_REGION.rows:
   </block>
   <suspend/>
   <checkbox label="QC_WEEKEND">
-    <title>Which, if any, of the following have you done over the past weekend?</title>
     <comment>${res.MP1}</comment>
     <row label="r1">Watched TV</row>
     <row label="r2">Visited Antarctica</row>
@@ -362,14 +341,12 @@ for eachrow in DUM_REGION.rows:
   </checkbox>
   <suspend/>
   <radio label="DUM_QCFLAG_WEEKEND" where="execute,report,survey">
-    <title>Hidden VARIABLE for QC_WEEKEND</title>
     <comment>${res.SP1}</comment>
     <row label="Pass">Pass</row>
     <row label="Fail">Fail</row>
   </radio>
   <suspend/>
   <checkbox label="DEVICES_HHLD">
-    <title>Which, if any, of these devices do you have in your household, even if you don’t personally use them?</title>
     <comment>${res.MP1}</comment>
     <row label="r1">Desktop/Laptop computer</row>
     <row label="r2">Smartphone (e.g., iPhone, Android phone, etc.)</row>
@@ -385,7 +362,6 @@ for eachrow in DUM_REGION.rows:
   </checkbox>
   <suspend/>
   <checkbox label="INDUSTRY">
-    <title>Do you, or does anyone in your household, work in any of the following industries?</title>
     <comment>${res.MP1}</comment>
     <row label="r1">Television</row>
     <row label="r2">Journalism</row>
@@ -403,39 +379,34 @@ for eachrow in DUM_REGION.rows:
   <terminate label="TERM_IND" cond="INDUSTRY.r1 or INDUSTRY.r2 or INDUSTRY.r3 or INDUSTRY.r4 or INDUSTRY.r5">INDUSTRY: Wrong industry</terminate>
   <suspend/>
   <radio label="QC_DOG_CONSENT">
-    <title>Are you using a screen-reader or any other assistive technology to complete this survey?</title>
     <comment>${res.SP1}</comment>
     <row label="r1">Yes</row>
     <row label="r2">No</row>
   </radio>
   <suspend/>
-  <checkbox label="QC_DOG">
-    <title>Here are some pictures of dogs. Please select images that show real dogs</title>
+  <checkbox label="QC_DOG" cond="QC_DOG_CONSENT.r2">
     <comment>${res.MP1}</comment>
-    <row label="r1" alt="Real dog #1">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/7247213914.png" class="dog-pic" /&gt;</row>
-    <row label="r2" alt="Real dog #2">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/0433861318.png" class="dog-pic" /&gt;</row>
-    <row label="r3" alt="Real dog #3">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/2378940374.png" class="dog-pic" /&gt;</row>
-    <row label="r4" alt="Real dog #4">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/7105114284.png" class="dog-pic" /&gt;</row>
-    <row label="r5" alt="Fake dog #1">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/4152180908.png" class="dog-pic" /&gt;</row>
-    <row label="r6" alt="Fake dog #2">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/2504245440.png" class="dog-pic" /&gt;</row>
+    <row label="r1">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/7247213914.png" class="dog-pic" /&gt;</row>
+    <row label="r2">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/0433861318.png" class="dog-pic" /&gt;</row>
+    <row label="r3">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/2378940374.png" class="dog-pic" /&gt;</row>
+    <row label="r4">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/7105114284.png" class="dog-pic" /&gt;</row>
+    <row label="r5">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/4152180908.png" class="dog-pic" /&gt;</row>
+    <row label="r6">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/2504245440.png" class="dog-pic" /&gt;</row>
   </checkbox>
   <suspend/>
-  <radio label="DUM_QC_DOG" where="execute,report,survey">
-    <title>Dog QC result</title>
+  <radio label="DUM_QC_DOG" where="execute,report,survey" cond="QC_DOG.count gt 0" optional="1">
     <row label="r1">Pass</row>
     <row label="r2">Fail</row>
   </radio>
   <suspend/>
   <block label="USA_ETHNICITY">
     <radio label="USA_ETHNICITY_1">
-      <title>Are you Spanish, Hispanic, or Latinx such as Mexican, Mexican-American, Chicano, Puerto Rican, Cuban, or another Spanish, Hispanic, or Latinx group?</title>
       <comment>${res.SP1}</comment>
       <row label="r1">Yes</row>
       <row label="r2">No</row>
     </radio>
     <suspend/>
     <checkbox label="USA_ETHNICITY_2">
-      <title>What is your racial background?</title>
       <comment>${res.MP1}</comment>
       <row label="r1">Asian / Asian-American</row>
       <row label="r2">Black / African-American</row>
@@ -444,7 +415,6 @@ for eachrow in DUM_REGION.rows:
     </checkbox>
     <suspend/>
     <checkbox label="DUM_US_ETH_1" where="execute,report,survey">
-      <title>Ethnicity 1</title>
       <row label="r1">Black Hisp</row>
       <row label="r2">Black Non Hisp</row>
       <row label="r3">White Hisp</row>
@@ -454,7 +424,6 @@ for eachrow in DUM_REGION.rows:
     </checkbox>
     <suspend/>
     <radio label="USA_ETHNICITY_QUOTA" where="execute,report,survey">
-      <title>HIDDEN QUESTION FOR USA ETHNICITY QUOTA</title>
       <row label="r1">Black Hisp</row>
       <row label="r2">Black Non Hisp</row>
       <row label="r3">White Hisp</row>
@@ -466,7 +435,6 @@ for eachrow in DUM_REGION.rows:
   </block>
   <suspend/>
   <radio label="QC_ATTENTION">
-    <title>How much do you agree or disagree that each of the words below describe you?</title>
     <comment>${res.SP1}</comment>
     <row label="r1">Sophisticated</row>
     <row label="r2">Elegant</row>
@@ -481,14 +449,12 @@ for eachrow in DUM_REGION.rows:
   </radio>
   <suspend/>
   <radio label="DUM_QCFLAG_ATTENTION" where="execute,report,survey">
-    <title>Hidden VARIABLE for QC_ATTENTION</title>
     <comment>${res.SP1}</comment>
     <row label="Pass">Pass</row>
     <row label="Fail">Fail</row>
   </radio>
   <suspend/>
   <radio label="QC_CONTRADICTION">
-    <title>How much do you agree or disagree with each of the following statements?</title>
     <comment>${res.SP1}</comment>
     <row label="r1">I love shopping for things online</row>
     <row label="r2">I can accomplish anything I want if I work hard enough</row>
@@ -504,19 +470,16 @@ for eachrow in DUM_REGION.rows:
   </radio>
   <suspend/>
   <radio label="DUM_QCFLAG_CONTRADICTION" where="execute,report,survey">
-    <title>Hidden VARIABLE for QC_CONTRADICTION</title>
     <comment>${res.SP1}</comment>
     <row label="Pass">Pass</row>
     <row label="Fail">Fail</row>
   </radio>
   <suspend/>
-  <number label="DUM_QC" where="execute,report,survey">
-    <title>Quality control: count of fails</title>
+  <number label="DUM_QC" where="execute,report,survey" optional="0">
     <comment>${res.N1}</comment>
   </number>
   <suspend/>
   <radio label="DUM_QCSCREENER_TERM" where="execute,report,survey">
-    <title>Hidden VARIABLE to Term people who failed 2 QC checks</title>
     <comment>${res.SP1}</comment>
     <row label="r1">Pass</row>
     <row label="r2">Fail</row>
