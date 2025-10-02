@@ -34,6 +34,7 @@ from survey_elements.models.structural import (
     Res,
     Style,
     HTML,
+    Validate,
 )
 from survey_elements.models.logic import (
     Loopvar,
@@ -80,12 +81,15 @@ def question_base(el):
     # parse child exec element (exec is a child element, not an attribute)
     exec_el = el.find("exec")
     if exec_el is not None:
-        exec_obj = Exec(content=exec_el.text or "", when=_attr(exec_el, "when"))
+        exec_obj = Exec(content=exec_el.text, when=_attr(exec_el, "when"))
     else:
         exec_obj = None
 
-    ss_val = _attr(el, "ss:listDisplay")
-    print(f"[DEBUG] parsing <{el.tag} label={_attr(el,'label')}> ss:listDisplay={ss_val!r}")
+    validate_el = el.find("validate")
+    if validate_el is not None:
+        validate_obj = Validate(content=validate_el.text)
+    else:
+        validate_obj = None
 
     return {
         "label": _attr(el, "label"),
@@ -99,7 +103,8 @@ def question_base(el):
         "where": _parse_enum_set(el, "where", Where),
         "optional": _bit(el, "optional"),
         "exec": exec_obj,
-        "ss_listDisplay": ss_val,
+        "validate": validate_obj,
+        "ss_listDisplay": _attr(el, "ss:listDisplay"),
         "atleast": _bit(el, "atleast"),
         "size": _attr(el, "size"),
         "verify": _attr(el, "verify"),

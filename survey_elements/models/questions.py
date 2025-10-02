@@ -40,7 +40,7 @@ from survey_elements.models.enums import (
 from survey_elements.utils.xml_helpers import _append_children
 from survey_elements.utils.xml_helpers import bool_bit, str_, csv
 from survey_elements.models.logic import DefineRef, Terminate
-from survey_elements.models.structural import Suspend, Exec, Note, HTML, Block
+from survey_elements.models.structural import Suspend, Exec, Note, HTML, Block, Validate
 from survey_elements.utils.editables import EditableTemplate
 
 if TYPE_CHECKING:
@@ -232,6 +232,7 @@ class Question(Element):
     cond: str | None = None
 
     exec: Exec | None = None
+    validate: Validate | None = None
     grouping: set[Grouping] = field(default_factory=set)
     optional: bool | None = None
     rightOf: str | None = None
@@ -248,6 +249,7 @@ class Question(Element):
     virtual: str | None = None
 
     ss_listDisplay: str | None = None
+    size: str | None = None 
 
     # For each field above, how to turn it into an XML attribute string
     # If the value is None, it will not be included in the XML element.
@@ -274,8 +276,9 @@ class Question(Element):
         "uses": str_,
         "values": str_,
         "virtual": str_,
-        # map python attr ss_listDisplay -> XML attribute "ss:listDisplay"
         "ss_listDisplay": ("ss:listDisplay", str_),
+        # ensure size is emitted as attribute "size"
+        "size": str_,
     }
 
     CHILD_TEXT_MAP = {
@@ -323,14 +326,11 @@ class Question(Element):
         # 1.5) append exec child if present (Exec dataclass has to_xml_element)
         exec_obj = getattr(self, "exec", None)
         if exec_obj is not None:
-            try:
-                el.append(exec_obj.to_xml_element())
-            except Exception:
-                # fallback: write raw string content if exec is not an Exec instance
-                if isinstance(exec_obj, str):
-                    ET.SubElement(el, "exec").text = exec_obj
-                else:
-                    raise
+            el.append(exec_obj.to_xml_element())
+        # 1.5) append validate child if present (Exec dataclass has to_xml_element)
+        validate_obj = getattr(self, "validate", None)
+        if validate_obj is not None:
+            el.append(validate_obj.to_xml_element())
 
         # 2) Append rows/cols/choices if they exist
         if hasattr(self, "rows"):

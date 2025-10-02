@@ -136,7 +136,7 @@ elif GENDER_FULL.r5 or GENDER_FULL.r98 or GENDER_FULL.r99 or GENDER_SHORT.r99:
     <row label="r3">Other/prefer not to say = CODE 5-7 AT GENDER_FULL OR 3 AT GENDER SHORT</row>
     </radio>
   <suspend />
-  <number label="AGE" optional="0">
+  <number label="AGE" optional="0" size="3">
     <title>What is your age?</title>
     <comment>Please enter a number.</comment>
     </number>
@@ -182,11 +182,20 @@ def zipCodeFile(fname, zipHeader):
 #This is creating a variable (ZIPCODES) that contains our zip code database.
 UK_ZIPCODES = zipCodeFile("UK_Postcodes_UPDATED.dat", "Postcode")
     </exec>
-    <text label="POSTCODE" cond="POSTCODE.n99" optional="0">
+    <text label="POSTCODE" cond="POSTCODE.n99" optional="0" size="4">
       <title>Please enter the &lt;strong&gt;first part&lt;/strong&gt; of your post code below. To be clear, we only want the part of your post code before the space! 
 &lt;br /&gt;&lt;br /&gt;
 Please use caps lock – text box is case sensitive
 </title>
+      <validate>
+this.r1.val = this.r1.val.upper()
+this.r2.val = this.r2.val.upper()
+
+RECORD = ZIPCODES.get( this.r1.val )
+
+if not(RECORD):
+  error(res.zipError)
+      </validate>
       <row label="r1">First part of postcode:</row>
       </text>
     <suspend />
@@ -198,7 +207,7 @@ if RECORD:
   DUM_POSTCODE_INFO.r3.val = RECORD['region/country']
     </exec>
     <suspend />
-    <text label="DUM_POSTCODE_INFO" randomize="0" where="execute,report,survey">
+    <text label="DUM_POSTCODE_INFO" randomize="0" where="execute,report,survey" size="25">
       <title>Location information from postcode</title>
       <row label="r1">Postcode</row>
       <row label="r2">Area</row>
@@ -239,6 +248,11 @@ if DUM_POSTCODE_INFO.r3.val is not None:
   <block label="US_ZIPCODE" cond="DUM_COUNTRY.r840">
     <text label="STD_ZIPCODE_US" optional="0">
       <title>Please enter your 5-digit ZIP code below.</title>
+      <validate>
+RECORD = ZIPCODES.get(STD_ZIPCODE_US.val)
+if not RECORD:
+    error(res.STDZIPError)
+      </validate>
       </text>
     <suspend />
     <exec when="init">
@@ -269,7 +283,7 @@ if RECORD:
   DUM_Zipcode.r9.val = RECORD['censusregionname']
     </exec>
     <suspend />
-    <text label="DUM_Zipcode" randomize="0" where="execute,report,survey">
+    <text label="DUM_Zipcode" randomize="0" where="execute,report,survey" size="25">
       <title>Hidden Marker: US city name</title>
       <comment>Please enter your answer</comment>
       <row label="r1">CityName</row>
@@ -624,7 +638,7 @@ else:
     <row label="Fail">Fail</row>
     </radio>
   <suspend />
-  <number label="DUM_QC" where="execute,report,survey" optional="0">
+  <number label="DUM_QC" where="execute,report,survey" optional="0" size="10">
     <title>Quality control: count of fails</title>
     <comment>${res.N1}</comment>
     <exec>

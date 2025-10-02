@@ -95,6 +95,24 @@ class Exec:
         el.text = self.content
         return el
 
+@dataclass(frozen=True)
+class Validate:
+    """
+    An <validate> tag
+
+    Methods:
+        to_xml_element() -> ET.Element: Convert to an XML element
+    """
+
+    content: str
+    parent: Optional[Question] = None  # associated Question
+
+    def to_xml_element(self) -> ET.Element:
+        """Convert to an XML element"""
+
+        el = ET.Element("validate")
+        el.text = self.content
+        return el
 
 @dataclass
 class Block:
