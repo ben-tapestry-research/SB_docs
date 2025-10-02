@@ -3,6 +3,9 @@ import tkinter as tk
 from tkinter import ttk, simpledialog
 from typing import List, Dict, Set, Optional
 import ttkbootstrap as tb
+from api.forsta_api_utils import fetch_modules
+import sys
+from dotenv import load_dotenv
 
 
 class ModuleSelector(tk.Frame):
@@ -29,7 +32,7 @@ class ModuleSelector(tk.Frame):
 
         # Label to show selected module
         self.label = ttk.Label(self, textvariable=self.module_name, style = "SubSubHeaderAlternative.TLabel")
-        self.label.bind("<Button-1>", lambda e: self.select_module(module_list))
+        self.label.bind("<Button-1>", lambda e: self.module_info(self.module_name))
         self.label.pack(pady=5)
 
 
@@ -94,7 +97,11 @@ class ModuleSelector(tk.Frame):
         info_window.grab_set()
 
         info_frame = tk.Frame(info_window)
-        info_frame.pack()
+        info_frame.pack(pady=10,padx = 10)
+        
+
+
+
 
 
 
@@ -144,13 +151,38 @@ class SurveyBuilderApp(tk.Frame):
         """
         super().__init__(master)  # Ensure tk.Frame is initialized with the master
         self._app_class = self.__class__
-
+        intermediatory = SurveyBuilderIntermediatory
         self.grid(row=0, column=0, sticky="nsew")
         # Header
         title = ttk.Label(self, text="Survey Builder", style = "MainHeader.TLabel")
         title.grid(row=1, column=0, columnspan=3, pady=10, sticky="n")
 
+
+        sys.path.insert(1,r"C:\Users\GeorgePrice\git\SurveyBuilder\Survey-Builder")
+        load_dotenv(dotenv_path=r"C:\Users\GeorgePrice\git\SurveyBuilder\Survey-Builder\keys.env")
+
+
+        # TODO Should be in a front-end class
+        modules_dict = fetch_modules() # Connect to forsta API
+        module_titles = [modules_dict[m].title for m in modules_dict.keys]
+
+        print(modules_dict)
         modules_frame = tk.Frame(self)
         modules_frame.grid(row = 2, column = 0)
-        module_list = ModuleList(modules_frame, ["Module1", "Module2", "Module3"])
+        module_list = ModuleList(modules_frame, module_titles)
         module_list.pack(fill="both", expand=True, padx=10, pady=10)
+
+
+class SurveyBuilderIntermediatory:
+    """
+    Handles interactions between the SurveyBuilder backend structure and the frontend
+    """
+    modules_dict = fetch_modules()
+    
+    @property
+    def module_titles(self):
+        return [self.modules_dict[m].title for m in self.modules_dict.keys]
+    
+    @property
+    def module_paths(self):
+        return [self.modules_dict[m].project_path for m in self.modules_dict.keys]

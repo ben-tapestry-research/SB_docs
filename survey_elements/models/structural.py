@@ -42,7 +42,7 @@ class Note:
     to_xml_element() -> ET.Element: Convert to an XML element
     """
     content: str
-    parent: Optional[Question | QuestionCluster] = None # associated Question or QuestionCluster class
+    parent: Optional[Question] = None # associated Question
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
@@ -51,7 +51,7 @@ class Note:
         return el
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq = False)
 class Suspend:
     """
     A <suspend> tag (page break)
@@ -60,7 +60,9 @@ class Suspend:
     Methods:
         to_xml_element() -> ET.Element: Convert to an XML element
     """
-    parent: Optional[Question | QuestionCluster] = None # associated Question or QuestionCluster class
+    __hash__ = object.__hash__ # create unique hash to identify each instance
+
+    parent: Optional[Question] = None # associated Question
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
@@ -79,7 +81,7 @@ class Exec:
 
     content: str
     when: str | None = None
-    parent: Optional[Question | QuestionCluster] = None # associated Question or QuestionCluster class
+    parent: Optional[Question] = None # associated Question
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
