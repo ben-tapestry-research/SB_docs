@@ -1,0 +1,536 @@
+<survey xmlns:builder="http://decipherinc.com/builder" xmlns:ss="http://decipherinc.com/ss" xmlns:html="http://decipherinc.com/html" xmlns:arg="http://decipherinc.com/arg" xmlns:atm1d="http://decipherinc.com/atm1d" xmlns:cardsort="http://decipherinc.com/cardsort" alt="[MODULES] CB: Category Brands" browserDupes="safe" builder:cname="surveys.tapestryresearch.com" builder:wizardCompleted="1" builderCompatible="1" compat="153" delphi="1" displayOnError="all" extraVariables="source,record,decLang,list,userAgent" fir="on" html:showNumber="0" lang="uk" mobile="compat" mobileDevices="smartphone,tablet,desktop" name="Tapestry Research" secure="1" setup="term,decLang,quota,time" ss:accordionDisplay="0" ss:customCSS="Tapestry_03_08_2023" ss:disableBackButton="1" ss:enableNavigation="0" ss:hideProgressBar="0" ss:listDisplay="1" ss:logoAlt="Logo" ss:logoFile="selfserve/2222/logo_a2a001390fe4dc2ce73e6e195e691697.png" ss:logoPosition="middle" state="testing" theme="company/rebranding-themes" id="survey">
+  <res label="Help" id="BSXhy">Help</res>
+  <res label="Privacy_Policy" id="PWGQ0">Privacy Policy</res>
+  <res label="sys_continue" id="qeHxf"/>
+  <res label="sys_back" id="vW0IK"/>
+  <res label="sys_finish" id="rPvwB">Finish</res>
+  <res label="ProceedText" id="iJ9BR">Click the "&gt;&gt;" button to proceed.</res>
+  <res label="PrevText" id="jJZ2A">Previous</res>
+  <res label="NextText" id="dRb5J">Next</res>
+  <res label="SP1" id="ABCmY">Please select one answer only.</res>
+  <res label="MP1" id="vkWKH">Please select all that apply.</res>
+  <res label="OE1" id="f0Wn5">Please write your answer in the box below.</res>
+  <res label="CS1" id="BxcdY">Please select one answer for each item.</res>
+  <res label="N1" id="X4skZ">Please enter a number in the box below.</res>
+  <res label="error_PREFERENCE_BRAND" id="KLugW">You can only select &lt;strong&gt;one&lt;/strong&gt; to be your go-to preference. Please review your answers</res>
+  <samplesources default="0" id="E6CB5">
+    <samplesource list="0" id="M1DnP">
+      <title id="aRRUy">Open Survey</title>
+      <invalid id="e8hUG">You are missing information in the URL. Please verify the URL with the original invite.</invalid>
+      <completed id="MK29U">It seems you have already entered this survey.</completed>
+      <exit cond="terminated" id="mVAmD">Thank you for taking our survey.</exit>
+      <exit cond="qualified" id="YIK9l">Thank you for taking our survey. Your efforts are greatly appreciated!</exit>
+      <exit cond="overquota" id="NWFpc">Thank you for taking our survey.</exit>
+    </samplesource>
+  </samplesources>
+  <suspend id="OvyYi"/>
+  <style label="spontaneous_text_boxes" arg:noanswer="1" name="question.after" wrap="ready" id="OBcFS">
+console.log($(noanswer))
+
+$ ("#question_${this.label} input[type='text']").on("input", function(){
+  checkInputs($(noanswer));
+});
+checkInputs($(noanswer));
+      
+
+function checkInputs(noAnswerRow) {
+	var baseId = "ans$(this.uid)\\.0\\.";
+	var maxRow = noAnswerRow ? ${len(this.rows) - 1} : ${len(this.rows)};
+	
+	for (var i = 0; i &lt; maxRow; i++) {
+		var current = $ ("#" + baseId + i)
+		var next = $ ("#" + baseId + (i + 1))
+		var nextElement = $ ("div.element").eq(i + 1)
+		
+		if (current.val().trim() !== ''){
+			next.parent().fadeIn(400);
+		    nextElement.fadeIn(400);
+		} else {
+		    next.val('')
+		    next.parent().fadeOut(400);
+		    nextElement.fadeOut(400);
+		}
+	}
+}
+</style>
+  <block label="module_cb" id="iOgJS">
+    <exec when="init" id="Cv3DL">
+def straightline_check(qid):
+    lst = [eachRow.val for eachRow in qid.rows if eachRow.count gt 0]
+    
+    # Question not answered
+    if not lst:
+        return False
+    # Question answered
+    else:
+        return all(ele == lst[0] for ele in lst)
+  </exec>
+    <exec id="LccBD">
+# ============================ CB: CATEGORY BRANDS - SETUP ============================
+
+# --------------------------- STEP 1 ------------------------------
+# ----- Set optional questions to be HIDDEN (if desired) ----------
+# NOTE: If the list is left blank, all optional questions will be shown
+
+hide_optionals = []   # 'cb1' or 'cb5' 
+
+
+
+# =============== DOES STUFF ===========
+for eachRow in DUM_CB_OPTIONAL.rows:
+  if eachRow.label not in hide_optionals:
+    eachRow.val = 1
+  </exec>
+    <exec id="edpfk"/>
+    <note id="rtvLd">======================== TEXT SUBS =======================</note>
+    <radio label="ORG" where="execute,survey,notdp" id="EiaQW">
+      <title id="e68Sp">ORG pipe</title>
+      <exec id="R8sG5">
+# SET AS NEEDED
+thisQuestion.val = thisQuestion.r1.index
+    </exec>
+      <row label="r1" id="dy5am">*ORG* PLACEHOLDER</row>
+      <row label="r2" id="PkgwN">*ORG* PLACEHOLDER</row>
+      <row label="r3" id="AjPOL">*ORG* PLACEHOLDER</row>
+      <row label="r4" id="h7ctL">*ORG* PLACEHOLDER</row>
+      <row label="r5" id="fSZxJ">*ORG* PLACEHOLDER</row>
+      <row label="r6" id="H9O7o">*ORG* PLACEHOLDER</row>
+      <row label="r7" id="vCcIL">*ORG* PLACEHOLDER</row>
+      <row label="r8" id="GIWVo">*ORG* PLACEHOLDER</row>
+    </radio>
+    <radio label="ACTION_PAST" where="execute,survey,notdp" id="DOPX9">
+      <title id="BS2Jf">ACTION_PAST pipe</title>
+      <exec id="SiTa5">
+# SET AS NEEDED
+thisQuestion.val = thisQuestion.r1.index
+    </exec>
+      <row label="r1" id="kO7q7">*ACTION_PAST* PLACEHOLDER</row>
+      <row label="r2" id="x5XwE">*ACTION_PAST* PLACEHOLDER</row>
+      <row label="r3" id="TeFxS">*ACTION_PAST* PLACEHOLDER</row>
+      <row label="r4" id="N9OBf">*ACTION_PAST* PLACEHOLDER</row>
+      <row label="r5" id="HBaBT">*ACTION_PAST* PLACEHOLDER</row>
+      <row label="r6" id="vZ3Ac">*ACTION_PAST* PLACEHOLDER</row>
+      <row label="r7" id="XolgD">*ACTION_PAST* PLACEHOLDER</row>
+      <row label="r8" id="gE1p8">*ACTION_PAST* PLACEHOLDER</row>
+    </radio>
+    <radio label="ACTION_PRESENT" where="execute,survey,notdp" id="KsOxg">
+      <title id="eLspo">ACTION_PRESENT pipe</title>
+      <exec id="qP7kW">
+# SET AS NEEDED
+thisQuestion.val = thisQuestion.r1.index
+    </exec>
+      <row label="r1" id="OBUpj">*ACTION_PRESENT* PLACEHOLDER</row>
+      <row label="r2" id="iOrWL">*ACTION_PRESENT* PLACEHOLDER</row>
+      <row label="r3" id="ZCQAl">*ACTION_PRESENT* PLACEHOLDER</row>
+      <row label="r4" id="kkm0t">*ACTION_PRESENT* PLACEHOLDER</row>
+      <row label="r5" id="A0Fr5">*ACTION_PRESENT* PLACEHOLDER</row>
+      <row label="r6" id="WS3Hr">*ACTION_PRESENT* PLACEHOLDER</row>
+      <row label="r7" id="kWXZI">*ACTION_PRESENT* PLACEHOLDER</row>
+      <row label="r8" id="KgjVY">*ACTION_PRESENT* PLACEHOLDER</row>
+    </radio>
+    <note id="vkAwY">========================== LISTS ======================</note>
+    <define label="BRANDS" id="NoMMg">
+      <row label="b01" id="NxKq6">*BRAND* PLACEHOLDER</row>
+      <row label="b02" id="Brg6J">*BRAND* PLACEHOLDER</row>
+      <row label="b03" id="e9ZDx">*BRAND* PLACEHOLDER</row>
+      <row label="b04" id="pKLa2">*BRAND* PLACEHOLDER</row>
+      <row label="b05" id="Imp9j">*BRAND* PLACEHOLDER</row>
+      <row label="b06" id="exj35">*BRAND* PLACEHOLDER</row>
+      <row label="b07" id="uPvfC">*BRAND* PLACEHOLDER</row>
+      <row label="b08" id="TwHi2">*BRAND* PLACEHOLDER</row>
+      <row label="b09" id="kKDYn">*BRAND* PLACEHOLDER</row>
+      <row label="b10" id="fZOQf">*BRAND* PLACEHOLDER</row>
+      <row label="b11" id="rAsR2">*BRAND* PLACEHOLDER</row>
+      <row label="b12" id="S68m3">*BRAND* PLACEHOLDER</row>
+      <row label="b13" id="UICfn">*BRAND* PLACEHOLDER</row>
+      <row label="b14" id="rbLaB">*BRAND* PLACEHOLDER</row>
+      <row label="b15" id="sHihy">*BRAND* PLACEHOLDER</row>
+      <row label="b16" id="YHchg">*BRAND* PLACEHOLDER</row>
+      <row label="b17" id="tHF7E">*BRAND* PLACEHOLDER</row>
+      <row label="b18" id="nOqpd">*BRAND* PLACEHOLDER</row>
+      <row label="b19" id="rWeVf">*BRAND* PLACEHOLDER</row>
+      <row label="b20" id="gglvm">*BRAND* PLACEHOLDER</row>
+    </define>
+    <define label="FREQUENCY_LIST" id="G7Sme">
+      <row label="f1" id="UqmCt">*FREQUENCY* PLACEHOLDER</row>
+      <row label="f2" id="EwC3x">*FREQUENCY* PLACEHOLDER</row>
+      <row label="f3" id="ew7IE">*FREQUENCY* PLACEHOLDER</row>
+      <row label="f4" id="NpdSg">*FREQUENCY* PLACEHOLDER</row>
+      <row label="f5" id="y1g6F">*FREQUENCY* PLACEHOLDER</row>
+    </define>
+    <checkbox label="DUM_CB_OPTIONAL" where="execute,survey,notdp" id="fWkhC">
+      <title id="ulV8B">Control whether optional questions are shown</title>
+      <row label="cb1" id="yv5ks">CB1</row>
+      <row label="cb5" id="kNlO8">MOSTRECENT_BRAND</row>
+      <row label="freq_brand" id="XHNhd">FREQ_BRAND</row>
+    </checkbox>
+    <suspend id="auMnd"/>
+    <note id="KoxUD">========================= QUESTIONS ======================</note>
+    <html label="INTRO_CB" where="survey" id="yg8KD">Thanks! 
+&lt;br /&gt;&lt;br /&gt;
+In this section we look at different [pipe: ORG].</html>
+    <suspend id="WkbwR"/>
+    <text label="UNAIDAWARE_BRAND" cond="DUM_CB_OPTIONAL.cb1" optional="0" size="30" sst="0" id="QBIXo">
+      <title id="c67kc">Which [pipe: ORG] come to mind? Please type each in a separate box below!</title>
+      <row label="r1" id="mpoLY">1.</row>
+      <row label="r2" optional="1" id="Skb8k">2.</row>
+      <row label="r3" optional="1" id="RCmoY">3.</row>
+      <row label="r4" optional="1" id="v1sf1">4.</row>
+      <row label="r5" optional="1" id="jZonC">5.</row>
+      <row label="r6" optional="1" id="DLqq6">6.</row>
+      <row label="r7" optional="1" id="ynjik">7.</row>
+      <row label="r8" optional="1" id="hatfa">8.</row>
+      <row label="r9" optional="1" id="D2XpT">9.</row>
+      <row label="r10" optional="1" id="BGrb4">10.</row>
+      <row label="r11" optional="1" id="jVWj5">11.</row>
+      <row label="r12" optional="1" id="SoyKW">12.</row>
+      <row label="r13" optional="1" id="FsTJ1">13.</row>
+      <row label="r14" optional="1" id="N6Cdn">14.</row>
+      <row label="r15" optional="1" id="um9XC">15.</row>
+      <row label="r16" optional="1" id="VG4De">16.</row>
+      <row label="r17" optional="1" id="qkmwe">17.</row>
+      <row label="r18" optional="1" id="j8SYA">18.</row>
+      <row label="r19" optional="1" id="xqQcB">19.</row>
+      <row label="r20" optional="1" id="NYvSq">20.</row>
+      <noanswer label="n99" id="BuJ4C">None</noanswer>
+      <style arg:noanswer="1" copy="spontaneous_text_boxes" name="question.after" id="RnNhf"/>
+    </text>
+    <suspend id="TvXoa"/>
+    <radio label="DUM_AIDAWARE_BRAND_Q_TEXT" optional="1" where="execute,survey,notdp" id="WAVZK">
+      <title id="uMQQk">AIDAWARE_BRAND question text pipe</title>
+      <exec id="CJHE6">
+if DUM_CB_OPTIONAL.cb1:
+   thisQuestion.val = thisQuestion.r2.index
+else:
+   thisQuestion.val = thisQuestion.r1.index
+    </exec>
+      <row label="r1" id="PXjox">Which of these [pipe: ORG] have you heard of before today?</row>
+      <row label="r2" id="HAaS2">Which of these [pipe: ORG] have you heard of before today? If you've already told us about one or more of these in the previous question, please still pick it here.</row>
+    </radio>
+    <suspend id="yNbmf"/>
+    <checkbox label="AIDAWARE_BRAND" atleast="1" atm1d:large_buttonAlign="Center" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="auto" atm1d:showInput="0" atm1d:viewMode="Tiled" shuffle="rows" ss:listDisplay="1" uses="atm1d.11" id="dlGBc">
+      <title id="bfx0P">[pipe: DUM_AIDAWARE_BRAND_Q_TEXT]</title>
+      <comment id="HNanL">${res.MP1}</comment>
+      <alt id="Fi3ye">Which of these [pipe: ORG] have you heard of before today</alt>
+      <insert source="BRANDS" id="xLEQO"/>
+      <row label="r99" cond="1" exclusive="1" randomize="0" id="sDbSw">None of these</row>
+    </checkbox>
+    <suspend id="SNaTD"/>
+    <define label="UNAIDAWARE_BRAND_OEs" id="p9Fjv">
+      <row label="UNAIDAWARE_BRANDx1" id="dC3Mg">${UNAIDAWARE_BRAND.r1.val}</row>
+      <row label="UNAIDAWARE_BRANDx2" id="heouk">${UNAIDAWARE_BRAND.r2.val}</row>
+      <row label="UNAIDAWARE_BRANDx3" id="XFnbX">${UNAIDAWARE_BRAND.r3.val}</row>
+      <row label="UNAIDAWARE_BRANDx4" id="A47u6">${UNAIDAWARE_BRAND.r4.val}</row>
+      <row label="UNAIDAWARE_BRANDx5" id="jxhkM">${UNAIDAWARE_BRAND.r5.val}</row>
+      <row label="UNAIDAWARE_BRANDx6" id="cCNqW">${UNAIDAWARE_BRAND.r6.val}</row>
+      <row label="UNAIDAWARE_BRANDx7" id="W7d65">${UNAIDAWARE_BRAND.r7.val}</row>
+      <row label="UNAIDAWARE_BRANDx8" id="qjkp9">${UNAIDAWARE_BRAND.r8.val}</row>
+      <row label="UNAIDAWARE_BRANDx9" id="iWxDd">${UNAIDAWARE_BRAND.r9.val}</row>
+      <row label="UNAIDAWARE_BRANDx10" id="o5nH0">${UNAIDAWARE_BRAND.r10.val}</row>
+      <row label="UNAIDAWARE_BRANDx11" id="QroCN">${UNAIDAWARE_BRAND.r11.val}</row>
+      <row label="UNAIDAWARE_BRANDx12" id="ooNCQ">${UNAIDAWARE_BRAND.r12.val}</row>
+      <row label="UNAIDAWARE_BRANDx13" id="TiYRy">${UNAIDAWARE_BRAND.r13.val}</row>
+      <row label="UNAIDAWARE_BRANDx14" id="fXEe5">${UNAIDAWARE_BRAND.r14.val}</row>
+      <row label="UNAIDAWARE_BRANDx15" id="tU8TE">${UNAIDAWARE_BRAND.r15.val}</row>
+      <row label="UNAIDAWARE_BRANDx16" id="fWv2I">${UNAIDAWARE_BRAND.r16.val}</row>
+      <row label="UNAIDAWARE_BRANDx17" id="Vs8D2">${UNAIDAWARE_BRAND.r17.val}</row>
+      <row label="UNAIDAWARE_BRANDx18" id="tai2K">${UNAIDAWARE_BRAND.r18.val}</row>
+      <row label="UNAIDAWARE_BRANDx19" id="WYrjx">${UNAIDAWARE_BRAND.r19.val}</row>
+      <row label="UNAIDAWARE_BRANDx20" id="mIf06">${UNAIDAWARE_BRAND.r20.val}</row>
+    </define>
+    <checkbox label="DUM_AWARE_BRAND" where="execute,survey,report" id="Kg4YJ">
+      <title id="lY62S">Ensure any mentioned and captured from UNAIDAWARE_BRAND is included with items from AIDAWARE_BRAND</title>
+      <exec id="FX9sK">
+clearQ(thisQuestion, "mp")
+
+
+# Copy in answers from AIDAWARE_BRAND
+for eachRow in AIDAWARE_BRAND.rows:
+  if eachRow and eachRow.label != 'r99':
+    thisQuestion[eachRow].val = 1
+
+# Tick the filled-in rows from UNAIDAWARE_BRAND
+for eachRow in UNAIDAWARE_BRAND.rows:
+  if eachRow.val not in ['', None]:
+    thisQuestion.attr('UNAIDAWARE_BRANDx' + eachRow.label.replace('r', '')).val = 1
+
+
+
+# REMOVE ANY OPEN-END RESPONSES THAT ARE SIMILAR TO CODES WE ALREADY HAVE
+pre_defined_brands = [eachRow.text for eachRow in thisQuestion.rows if not eachRow.label.startswith('UNAIDAWARE_BRAND') and eachRow]
+print pre_defined_brands
+
+for eachRow in thisQuestion.rows:
+  # Check each open-end response
+  if eachRow.label.startswith('UNAIDAWARE_BRAND'):
+    if eachRow:
+      open_end_response = eachRow.text
+      for each_brand in pre_defined_brands:
+        print "Checking '", open_end_response, "' against '", each_brand
+        if are_similar(open_end_response, each_brand):
+          eachRow.val = 0
+    </exec>
+      <insert source="BRANDS" id="ZK3vM"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="hpKMa"/>
+    </checkbox>
+    <suspend id="Qp6JE"/>
+    <radio label="FAMILIAR_BRAND" cardsort:bucketCSS="width: 18%;" cardsort:buttonNextHTML="&lt;span style=&quot;font-family: Century Gothic;&quot;&gt;${res.NextText}&lt;/span&gt; &lt;i class=&quot;fa-icon-chevron-right&quot;&gt;&lt;/i&gt;" cardsort:buttonPreviousHTML="&lt;i class=&quot;fa-icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;span style=&quot;font-family: Century Gothic;&quot;&gt; ${res.PrevText}&lt;/span&gt;" cardsort:cardCSS="font-family: 'Century Gothic', CenturyGothic, AppleGothic, sans-serif; max-width: 450px;" cardsort:completionHTML="&lt;i&gt;${res.ProceedText}&lt;/i&gt;" cardsort:displayCounter="0" cardsort:themeFile="cardsort.css" rowCond="DUM_AWARE_BRAND[row]" shuffle="rows,cols" uses="cardsort.8" id="iD2t2">
+      <title id="TlBrC">Which of these best describes how familiar you are with each of these [pipe: ORG]?</title>
+      <comment id="qH70S">${res.CS1}</comment>
+      <exec id="aLgcH">
+thisQuestion.rows.order = AIDAWARE_BRAND.rows.order
+    </exec>
+      <insert source="BRANDS" id="J08Xq"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="jbrCn"/>
+      <col label="c1" id="hXVMc">I only know the name</col>
+      <col label="c2" id="kpII6">I know a little about it but have no real experience with it</col>
+      <col label="c3" id="qkFlL">I have some experience with it</col>
+      <col label="c4" id="EQlri">I have a lot of experience with it</col>
+    </radio>
+    <suspend id="dFLuh"/>
+    <radio label="DUM_FAMILIAR_BRAND_SL" optional="1" where="execute,survey,report" id="Xj5cH">
+      <title id="MPwZG">Straightliner flag for FAMILIAR_BRAND</title>
+      <exec id="wbrgt">
+if straightline_check(FAMILIAR_BRAND):
+    thisQuestion.val = thisQuestion.r1.index
+else:
+    thisQuestion.val = thisQuestion.r2.index
+    </exec>
+      <row label="r1" id="OlNAS">Yes</row>
+      <row label="r2" id="D7CkE">No</row>
+    </radio>
+    <suspend id="fWatq"/>
+    <checkbox label="DUMMY_FAMILIAR_BRAND_TB" where="execute,survey,report" id="nprtx">
+      <title id="Ue4lZ">HOLD BRANDS VERY FAMILIAR (C4)</title>
+      <exec id="Bp4eI">
+clearQ(thisQuestion, "mp")
+
+for eachRow in thisQuestion.rows:
+  if FAMILIAR_BRAND[eachRow].c4:
+    eachRow.val = 1
+    </exec>
+      <insert source="BRANDS" id="uhgvU"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="sJ86n"/>
+    </checkbox>
+    <checkbox label="DUMMY_FAMILIAR_BRAND_T2B" where="execute,survey,report" id="D5C5F">
+      <title id="XXbit">HOLD BRANDS FAMILIAR (C3 OR 4)</title>
+      <exec id="SF2uD">
+clearQ(thisQuestion, "mp")
+
+for eachRow in thisQuestion.rows:
+  if FAMILIAR_BRAND[eachRow].c3 or FAMILIAR_BRAND[eachRow].c4:
+    eachRow.val = 1
+    </exec>
+      <insert source="BRANDS" id="Jqjmm"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="YsY9D"/>
+    </checkbox>
+    <checkbox label="DUMMY_FAMILIAR_BRAND_T3B" where="execute,survey,report" id="m5Cj2">
+      <title id="dAl3Y">HOLD BRANDS ANY KNOWLEDGE (C2, 3 OR 4)</title>
+      <exec id="GlXu3">
+clearQ(thisQuestion, "mp")
+
+for eachRow in thisQuestion.rows:
+  if FAMILIAR_BRAND[eachRow].c2 or FAMILIAR_BRAND[eachRow].c3 or FAMILIAR_BRAND[eachRow].c4:
+    eachRow.val = 1
+    </exec>
+      <insert source="BRANDS" id="Z2Ghh"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="YLdu4"/>
+    </checkbox>
+    <suspend id="r5GSK"/>
+    <checkbox label="EVER_BRAND" atleast="1" atm1d:large_buttonAlign="Center" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="auto" atm1d:showInput="0" atm1d:viewMode="Tiled" rowCond="DUMMY_FAMILIAR_BRAND_T3B[row]" shuffle="rows" ss:listDisplay="1" uses="atm1d.11" id="iNe4D">
+      <title id="PVMRy">Which of these have you ever [pipe: ACTION_PAST]?</title>
+      <comment id="VJyHq">${res.MP1}</comment>
+      <exec id="Y7Rcx">
+thisQuestion.rows.order = AIDAWARE_BRAND.rows.order
+    </exec>
+      <insert source="BRANDS" id="Gdv6P"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="PtKOK"/>
+      <row label="r99" cond="1" exclusive="1" randomize="0" id="oNUdn">None of these</row>
+    </checkbox>
+    <suspend id="tsRka"/>
+    <block label="MOSTRECENT_QS" cond="DUM_CB_OPTIONAL.cb5" builder:title="MOSTRECENT questions" id="FkgWG">
+      <radio label="MOSTRECENT_BRAND" cond="EVER_BRAND.but(EVER_BRAND.r99).count gt 1" atm1d:large_buttonAlign="Center" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="auto" atm1d:showInput="0" atm1d:viewMode="Tiled" rowCond="EVER_BRAND[row]" shuffle="rows" ss:listDisplay="1" uses="atm1d.11" id="T4HLU">
+        <title id="TPiOF">Which was the LAST one you [pipe: ACTION_PAST]?</title>
+        <comment id="kp6er">${res.SP1}</comment>
+        <exec id="ZyfRT">
+thisQuestion.rows.order = AIDAWARE_BRAND.rows.order
+      </exec>
+        <insert source="BRANDS" id="xoaqu"/>
+        <insert source="UNAIDAWARE_BRAND_OEs" id="iVPEA"/>
+        <row label="r99" cond="1" exclusive="1" randomize="0" id="FVd83">I don't know / can't remember</row>
+      </radio>
+      <suspend id="BtgAa"/>
+      <exec cond="EVER_BRAND.but(EVER_BRAND.r99).count == 1" id="p7wbm">
+# AUTOCODE CB5 IF ONLY 1 THING SELECTED AT EVER_BRAND
+MOSTRECENT_BRAND.val = [eachRow.index for eachRow in EVER_BRAND.rows if eachRow][0]
+    </exec>
+      <suspend id="k2Znw"/>
+    </block>
+    <suspend id="k0Dov"/>
+    <radio label="FREQ_BRAND" cond="DUM_CB_OPTIONAL.freq_brand" cardsort:bucketCSS="width: 18%;" cardsort:buttonNextHTML="&lt;span style=&quot;font-family: Century Gothic;&quot;&gt;${res.NextText}&lt;/span&gt; &lt;i class=&quot;fa-icon-chevron-right&quot;&gt;&lt;/i&gt;" cardsort:buttonPreviousHTML="&lt;i class=&quot;fa-icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;span style=&quot;font-family: Century Gothic;&quot;&gt; ${res.PrevText}&lt;/span&gt;" cardsort:cardCSS="font-family: 'Century Gothic', CenturyGothic, AppleGothic, sans-serif; max-width: 450px;" cardsort:completionHTML="&lt;i&gt;${res.ProceedText}&lt;/i&gt;" cardsort:displayCounter="0" cardsort:themeFile="cardsort.css" rowCond="EVER_BRAND[row]" shuffle="rows" uses="cardsort.8" id="ZLOJ9">
+      <title id="ZZlGf">How frequently do you [pipe: ACTION_PRESENT] each of the following?</title>
+      <comment id="EaAaQ">${res.CS1}</comment>
+      <insert source="BRANDS" id="CBixW"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="iaOyi"/>
+      <insert as="cols" source="FREQUENCY_LIST" id="BEnT9"/>
+    </radio>
+    <suspend id="sePsy"/>
+    <radio label="PREFERENCE_BRAND" rowCond="DUM_AWARE_BRAND[row]" shuffle="rows,cols" id="sebkU">
+      <title id="AFTXq">Which of these best describes how you feel about each of these [pipe: ORG]?</title>
+      <comment id="FCmjO">${res.CS1}</comment>
+      <exec id="VRrJv">
+thisQuestion.rows.order = AIDAWARE_BRAND.rows.order
+    </exec>
+      <validate id="nQJfB">
+if this.c6.count gt 1:
+  error(res.error_PREFERENCE_BRAND, this.c6)
+    </validate>
+      <insert source="BRANDS" id="AnysS"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="hXhmp"/>
+      <col label="c1" id="DbxMl">I would never consider it</col>
+      <col label="c2" id="jLAiQ">I'd only consider it if there was no alternative</col>
+      <col label="c3" id="DPw4O">I might consider it in some situations</col>
+      <col label="c4" id="lGowv">It's one of a number I will consider</col>
+      <col label="c5" id="BNif5">It's one of a small group I prefer</col>
+      <col label="c6" id="ZdaKP">It's my go-to, my number one preference</col>
+    </radio>
+    <suspend id="J3PDa"/>
+    <radio label="DUM_PREFERENCE_BRAND_SL" optional="1" where="execute,survey,report" id="yaQrQ">
+      <title id="kt7Hl">Straightliner flag for PREFERENCE_BRAND</title>
+      <exec id="M15Rh">
+if straightline_check(PREFERENCE_BRAND):
+    thisQuestion.val = thisQuestion.r1.index
+else:
+    thisQuestion.val = thisQuestion.r2.index
+    </exec>
+      <row label="r1" id="HC9xU">Yes</row>
+      <row label="r2" id="CuQJ6">No</row>
+    </radio>
+    <suspend id="QYM8m"/>
+    <radio label="DUMMY_PREFERENCE_BRAND_TB" optional="1" where="execute,survey,report" id="H0EBt">
+      <title id="PKoZy">Hold brands given c6</title>
+      <exec id="BH5pG">
+for eachRow in thisQuestion.rows:
+  if PREFERENCE_BRAND[eachRow].c6:
+    thisQuestion.val = eachRow.index
+    break
+    </exec>
+      <insert source="BRANDS" id="odjwP"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="gkWeT"/>
+    </radio>
+    <checkbox label="DUMMY_PREFERENCE_BRAND_T2B" where="execute,survey,report" id="H4TCU">
+      <title id="elO30">Hold brands given c5 or 6</title>
+      <exec id="roNNi">
+for eachRow in thisQuestion.rows:
+  if PREFERENCE_BRAND[eachRow].c5 or PREFERENCE_BRAND[eachRow].c6:
+    eachRow.val = 1
+    </exec>
+      <insert source="BRANDS" id="XV8RH"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="TDNq2"/>
+    </checkbox>
+    <checkbox label="DUMMY_PREFERENCE_BRAND_T3B" where="execute,survey,report" id="HOnho">
+      <title id="m0SA5">Hold brands given c4, 5 or 6</title>
+      <exec id="i85A4">
+for eachRow in thisQuestion.rows:
+  if PREFERENCE_BRAND[eachRow].c4 or PREFERENCE_BRAND[eachRow].c5 or PREFERENCE_BRAND[eachRow].c6:
+    eachRow.val = 1
+    </exec>
+      <insert source="BRANDS" id="ygWPX"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="CgdY1"/>
+    </checkbox>
+    <checkbox label="DUMMY_PREFERENCE_BRAND_T4B" where="execute,survey,report" id="mQ2LG">
+      <title id="nn6Ne">Hold brands given c3, 4, 5 or 6</title>
+      <exec id="IATMI">
+for eachRow in thisQuestion.rows:
+  if PREFERENCE_BRAND[eachRow].c3 or PREFERENCE_BRAND[eachRow].c4 or PREFERENCE_BRAND[eachRow].c5 or PREFERENCE_BRAND[eachRow].c6:
+    eachRow.val = 1
+    </exec>
+      <insert source="BRANDS" id="DrrLf"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="CcQWY"/>
+    </checkbox>
+    <checkbox label="DUMMY_PREFERENCE_BRAND_T5B" where="execute,survey,report" id="VXsaq">
+      <title id="yrIbi">Hold brands given c2, 3, 4, 5 or 6</title>
+      <exec id="PeIDV">
+for eachRow in thisQuestion.rows:
+  if PREFERENCE_BRAND[eachRow].c2 or PREFERENCE_BRAND[eachRow].c3 or PREFERENCE_BRAND[eachRow].c4 or PREFERENCE_BRAND[eachRow].c5 or PREFERENCE_BRAND[eachRow].c6:
+    eachRow.val = 1
+    </exec>
+      <insert source="BRANDS" id="swBMg"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="xHEIe"/>
+    </checkbox>
+    <checkbox label="DUMMY_PREFERENCE_BRAND_B2B" where="execute,survey,report" id="NJBYd">
+      <title id="NpgAq">Hold brands given c1 or 2</title>
+      <exec id="cVL5a">
+for eachRow in thisQuestion.rows:
+  if PREFERENCE_BRAND[eachRow].c1 or PREFERENCE_BRAND[eachRow].c2:
+    eachRow.val = 1
+    </exec>
+      <insert source="BRANDS" id="AHQY4"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="QlXLu"/>
+    </checkbox>
+    <checkbox label="DUMMY_PREFERENCE_BRAND_BB" where="execute,survey,report" id="VmvBX">
+      <title id="MjlBK">Hold brands given c1</title>
+      <exec id="PxVN9">
+for eachRow in thisQuestion.rows:
+  if PREFERENCE_BRAND[eachRow].c1:
+    eachRow.val = 1
+    </exec>
+      <insert source="BRANDS" id="UKvBL"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="E1gvb"/>
+    </checkbox>
+    <suspend id="u9QiG"/>
+    <radio label="LIKING_BRAND" cardsort:bucketCSS="width: 18%;" cardsort:buttonNextHTML="&lt;span style=&quot;font-family: Century Gothic;&quot;&gt;${res.NextText}&lt;/span&gt; &lt;i class=&quot;fa-icon-chevron-right&quot;&gt;&lt;/i&gt;" cardsort:buttonPreviousHTML="&lt;i class=&quot;fa-icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;span style=&quot;font-family: Century Gothic;&quot;&gt; ${res.PrevText}&lt;/span&gt;" cardsort:cardCSS="font-family: 'Century Gothic', CenturyGothic, AppleGothic, sans-serif; max-width: 450px;" cardsort:completionHTML="&lt;i&gt;${res.ProceedText}&lt;/i&gt;" cardsort:displayCounter="0" cardsort:themeFile="cardsort.css" rowCond="DUM_AWARE_BRAND[row]" shuffle="rows" uses="cardsort.8" id="VJoDE">
+      <title id="JKpVh">More generally, how much do you like or dislike each of these [pipe: ORG]?</title>
+      <comment id="rFb6h">${res.CS1}</comment>
+      <exec id="DT6ut">
+thisQuestion.rows.order = AIDAWARE_BRAND.rows.order
+    </exec>
+      <insert source="BRANDS" id="CQ2N9"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="yJ2Tk"/>
+      <col label="c1" id="Hq5GZ">&lt;strong&gt;Dislike&lt;/strong&gt; it a lot</col>
+      <col label="c2" id="ABvfK">&lt;strong&gt;Dislike&lt;/strong&gt; it a little</col>
+      <col label="c3" id="bx6OW">Neither like it nor dislike it</col>
+      <col label="c4" id="pHAVB">&lt;strong&gt;Like&lt;/strong&gt; it a little</col>
+      <col label="c5" id="n4KoZ">&lt;strong&gt;Like&lt;/strong&gt; it a lot</col>
+    </radio>
+    <suspend id="VJfkO"/>
+    <checkbox label="DUMMY_LIKING_BRAND_TB" where="execute,survey,report" id="W2aqD">
+      <title id="cXlNm">DUMMY VARIABLE TO HOLD TOP BOX (C5) FOR EACH ITEM</title>
+      <exec id="vijC7">
+clearQ(thisQuestion, "mp")
+
+for eachRow in thisQuestion.rows:
+  if LIKING_BRAND[eachRow].c5:
+    eachRow.val = 1
+    </exec>
+      <insert source="BRANDS" id="YdUjJ"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="xMSyf"/>
+    </checkbox>
+    <checkbox label="DUMMY_LIKING_BRAND_T2B" where="execute,survey,report" id="d7mJB">
+      <title id="N1dJg">DUMMY VARIABLE TO HOLD TOP 2 BOX (C4 OR C5) FOR EACH ITEM</title>
+      <exec id="TnDGM">
+clearQ(thisQuestion, "mp")
+
+for eachRow in thisQuestion.rows:
+  if LIKING_BRAND[eachRow].c4 or LIKING_BRAND[eachRow].c5:
+    eachRow.val = 1
+    </exec>
+      <insert source="BRANDS" id="fZRMY"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="mOdsp"/>
+    </checkbox>
+    <checkbox label="DUMMY_LIKING_BRAND_B2B" where="execute,survey,report" id="SpTvO">
+      <title id="JEAci">DUMMY VARIABLE TO HOLD BOTTOM 2 BOX (C1 OR C2) FOR EACH ITEM</title>
+      <exec id="k8tEL">
+clearQ(thisQuestion, "mp")
+
+for eachRow in thisQuestion.rows:
+  if LIKING_BRAND[eachRow].c1 or LIKING_BRAND[eachRow].c2:
+    eachRow.val = 1
+    </exec>
+      <insert source="BRANDS" id="FucwQ"/>
+      <insert source="UNAIDAWARE_BRAND_OEs" id="gYHdx"/>
+    </checkbox>
+    <suspend id="uat2E"/>
+  </block>
+  <suspend id="CBIrQ"/>
+</survey>

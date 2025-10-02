@@ -6,6 +6,7 @@ Author: George
 Date: September 2025
 """
 
+from xml.etree import ElementTree as ET
 from dataclasses import dataclass, field
 from survey_elements.models.structural import Block, HTML
 from survey_elements.models.questions import Question
@@ -190,6 +191,27 @@ class Module:
         if hasattr(self, "invalidate_cache"):
             self.invalidate_cache()
         return removed
+    
+    def to_xml_element(self) -> ET.Element:
+        """Converts the module to an ElementTree object
+
+        Returns:
+            ET.Element: The Module represented as an ElementTree
+        """
+        module_children = self.main.children
+        print(f"Module {self.project_code} has {len(module_children)} child elements")
+
+        # Create the <block label="module_xx"> ... </block> wrapper
+        root = ET.Element("block", {"label": self.project_code})
+        
+        for obj in module_children:
+            if hasattr(obj, "to_xml_element"):
+                child = obj.to_xml_element()
+                root.append(child)
+            else:
+                raise TypeError(f"{obj} has no to_xml_element() method")
+    
+        return root
 
 
 def _prune_children(node, match: Callable[[object], bool]) -> tuple[object, int]:
@@ -222,7 +244,7 @@ def _prune_children(node, match: Callable[[object], bool]) -> tuple[object, int]
         node.children = tuple(new_children)
     return node, removed
 
-def load_module_from_project(module_title: str, project_path: str) -> Module:
+def load_module_from_project(module_title: str, project_path: str, save_to_disk=False) -> Module:
     """
     Load a module from a Forsta project path (e.g. selfserve/2222/module_cb)
     
@@ -234,11 +256,14 @@ def load_module_from_project(module_title: str, project_path: str) -> Module:
         raise TypeError("Ensure 'project_path' is a str type")    
     if not isinstance(module_title, str):
         raise TypeError("Ensure 'module_title' is a str")
-
-    root = download_project_file(project_path, "xml", save_to_disk=False)
+    print("here2")
+    root = download_project_file(project_path, "xml", save_to_disk=save_to_disk)
+    print("here3")
     main_block = root.find(
         "block"
     )  # top-level <block> tag of the survey is all the module
     main = parse_block(main_block)
 
     return Module(title=module_title, project_path=Path(project_path), main=main)
+
+
