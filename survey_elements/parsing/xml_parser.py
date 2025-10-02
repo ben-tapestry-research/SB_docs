@@ -24,6 +24,7 @@ from survey_elements.models.questions import (
     TextQuestion,
     TextAreaQuestion,
     SelectQuestion,
+    NoAnswer
 )
 
 from survey_elements.models.structural import (
@@ -53,6 +54,7 @@ from survey_elements.models.logic import (
 )
 
 from survey_elements.models.enums import (
+    Shuffle,
     Where,
     Mode,
 )
@@ -78,18 +80,26 @@ def _allowed_param_names(cls):
 
 # ------------ QUESTION TYPES ------------------
 def question_base(el):
-    # parse child exec element (exec is a child element, not an attribute)
+    # <exec> can be a child element of a question
     exec_el = el.find("exec")
     if exec_el is not None:
         exec_obj = Exec(content=exec_el.text, when=_attr(exec_el, "when"))
     else:
         exec_obj = None
 
+    # <validate> can be a child element of a question
     validate_el = el.find("validate")
     if validate_el is not None:
         validate_obj = Validate(content=validate_el.text)
     else:
         validate_obj = None
+
+    # <style> can be a child element of a question
+    style_el = el.find("style")
+    if style_el is not None:
+        style_obj = parse_style(style_el)
+    else:
+        style_obj = None
 
     return {
         "label": _attr(el, "label"),
@@ -104,11 +114,14 @@ def question_base(el):
         "optional": _bit(el, "optional"),
         "exec": exec_obj,
         "validate": validate_obj,
+        "style": style_obj,
         "ss_listDisplay": _attr(el, "ss:listDisplay"),
         "atleast": _bit(el, "atleast"),
         "size": _attr(el, "size"),
         "verify": _attr(el, "verify"),
         "range": _attr(el, "range"),
+        "translateable": _attr(el, "translateable"),
+        "shuffle": _parse_enum_set(el, "shuffle", Shuffle),
     }
 
 
@@ -123,7 +136,10 @@ def element_base(el):
         "where": _parse_enum_set(el, "where", Where),
         "optional": _bit(el, "optional"),
         "alt": _attr(el, "alt"),
-        "value": _attr(el, "value")
+        "value": _attr(el, "value"),
+        "verify": _attr(el, "verify"),
+        "translateable": _attr(el, "translateable"),
+        "shuffle": _parse_enum_set(el, "shuffle", Shuffle),
     }
 
 
@@ -148,7 +164,23 @@ def build_question(cls, el):
 
 def build_element(cls, el):
     dct = element_base(el)
+    # drop None values
     dct = {k: v for k, v in dct.items() if v is not None}
+
+    # restrict to parameters the dataclass accepts
+    allowed = _allowed_param_names(cls)
+    unknown = [k for k in dct.keys() if k not in allowed]
+
+    def _meaningful(v):
+        return v is not None and v not in ("", (), [], {})
+
+    unexpected_nonempty = [k for k in unknown if _meaningful(dct.get(k))]
+    if unexpected_nonempty:
+        print(f"[build_element] {cls.__name__} ignoring unexpected fields: {sorted(unexpected_nonempty)}")
+
+    # keep only allowed keys so cls(**dct) won't raise
+    dct = {k: v for k, v in dct.items() if k in allowed}
+
     return cls(**dct)
 
 
@@ -188,9 +220,23 @@ def parse_textarea(textarea_el: ET.Element) -> TextAreaQuestion:
 def parse_row(row_el: ET.Element) -> Row:
     return build_element(Row, row_el)
 
+def parse_noanswer(na_el: ET.Element) -> NoAnswer:
+    return build_element(NoAnswer, na_el)
 
-def parse_rows(parent: ET.Element) -> tuple[Row, ...]:
-    return tuple(parse_row(el) for el in parent.findall("row"))
+
+def parse_rows(parent: ET.Element) -> tuple[Row | NoAnswer, ...]:
+    """
+    Collect both <row> and <noanswer> children and return tuple of Row/NoAnswer.
+    Keeps original behaviour (order preserved).
+    """
+    rows = []
+    for child in parent:
+        if child.tag == "row":
+            rows.append(parse_row(child))
+        elif child.tag == "noanswer":
+            rows.append(parse_noanswer(child))
+        # keep existing handling of other tags (e.g. <insert>) elsewhere if present
+    return tuple(rows)
 
 
 def parse_col(col_el: ET.Element) -> Col:
@@ -268,7 +314,8 @@ def parse_exec(exec_el: ET.Element) -> Exec:
     """
     content = exec_el.text
     when = _attr(exec_el, "when")
-    return Exec(content=content, when=when)
+    cond = _attr(exec_el, "cond")
+    return Exec(content=content, when=when, cond=cond)
 
 
 def parse_html(html_el: ET.Element) -> HTML:
@@ -408,27 +455,11 @@ def parse_logic(logic_el: ET.Element) -> Logic:
 
 
 def parse_style(style_el: ET.Element) -> Style:
-    """
-    Given an ElementTree <style> tag, convert into Style object. The content is the text within the tag.
-    Args:
-        style_el (ET.Element): A <style> tag as ElementTree
-    Returns:
-        Style: A Style object
-    """
-    return Style(
-        name=_attr(style_el, "name"),
-        label=_attr(style_el, "label"),
-        copy=_attr(style_el, "copy"),
-        cond=_attr(style_el, "cond"),
-        rows=_attr(style_el, "rows"),
-        cols=_attr(style_el, "cols"),
-        mode=_parse_enum_set(style_el, "mode", Mode),
-        after=_attr(style_el, "after"),
-        before=_attr(style_el, "before"),
-        withx=_attr(style_el, "with"),
-        wrap=_attr(style_el, "wrap"),
-        content=style_el.text,
-    )
+    """Build a Style object from a <style> element without passing unrelated attrs."""
+    name = _attr(style_el, "name")
+    typ = _attr(style_el, "type")
+    content = style_el.text
+    return Style(name=name, content=content, type=typ)
 
 
 def parse_sample_sources(sources_el: ET.Element) -> SampleSources:
@@ -543,6 +574,7 @@ _PARSERS = {
     "var": parse_var,
     "exit": parse_exit,
     "condition": parse_condition,
+    "noanswer": parse_noanswer,
 }
 
 # Stack to show current path while parsing (for debugging)

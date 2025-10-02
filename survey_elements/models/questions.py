@@ -1,5 +1,5 @@
 """
-Defines the core data structures for survey questions and elements. 
+Defines the core data structures for survey questions and elements.
 Each class mirrors a Decipher survey element, with attributes corresponding to XML attributes.
 Each class includes a `to_xml_element` method to convert the dataclass instance to an XML element.
 
@@ -8,7 +8,7 @@ Definitions: https://forstasurveys.zendesk.com/hc/en-us/articles/4409469868315-O
 Classes:
 - Element: Base class for all survey elements.
 - Cell: Represents <row>, <col>, and <choice> elements.
-- QuestionCluster: Handles a group of questions. 
+- QuestionCluster: Handles a group of questions.
 - Question: Base class for all question types.
 - Row: Represents a <row> element.
 - Col: Represents a <col> element.
@@ -24,9 +24,19 @@ Classes:
 Author: Ben Andrews
 Date: August 2025
 """
+
 from dataclasses import dataclass, field
 import xml.etree.ElementTree as ET
-from typing import Callable, Dict, List, Optional, Sequence, Union, Tuple, Optional, Any, TYPE_CHECKING
+from typing import (
+
+    Optional,
+
+    Union,
+    Tuple,
+    Optional,
+
+    TYPE_CHECKING,
+)
 import re
 
 from survey_elements.models.enums import (
@@ -40,7 +50,7 @@ from survey_elements.models.enums import (
 from survey_elements.utils.xml_helpers import _append_children
 from survey_elements.utils.xml_helpers import bool_bit, str_, csv
 from survey_elements.models.logic import DefineRef, Terminate
-from survey_elements.models.structural import Suspend, Exec, Note, HTML, Block, Validate
+from survey_elements.models.structural import Suspend, Exec, Note, HTML, Block, Validate, Style
 from survey_elements.utils.editables import EditableTemplate
 
 if TYPE_CHECKING:
@@ -66,7 +76,6 @@ class Element:
     label: str
     disabled: bool | None = None
     randomize: bool | None = None
-    style: str | None = None
     where: set[Where] = field(default_factory=set)
     alt: str | None = None
     altlabel: str | None = None
@@ -74,6 +83,7 @@ class Element:
     id: str | None = None
     sst: bool | None = None
     cond: str | None = None
+    verify: str | None = None
 
     # For each field above, how to turn it into an XML attribute string
     # If the value is None, it will not be included in the XML element.
@@ -81,7 +91,8 @@ class Element:
         "label": str_,
         "disabled": bool_bit,
         "randomize": bool_bit,
-        "style": str_,
+        # only emit style attribute when the python field is a plain string
+        "style": ("style", lambda v: None if v is None or not isinstance(v, str) else str(v)),
         "where": csv,
         "alt": str_,
         "altlabel": str_,
@@ -89,6 +100,7 @@ class Element:
         "id": str_,
         "sst": bool_bit,
         "cond": str_,
+        "verify": str_,
     }
 
     def to_xml_element(self) -> ET.Element:
@@ -202,25 +214,26 @@ class Question(Element):
     Methods:
     - to_xml_element: Converts the object to an XML element
     """
+
     # TODO Add links to Suspend, Exec, Terminate, Note and Block objects that linked to this class
-    __hash__ = object.__hash__ # create unique hash to identify each question instance
+    __hash__ = object.__hash__  # create unique hash to identify each question instance
 
     def __post_init__(self) -> None:
-        """ Functions called post initiation """
-        self._bind_define_refs() # Assign DefineRefs with self reference to DefineRef parent attribute
+        """Functions called post initiation"""
+        self._bind_define_refs()  # Assign DefineRefs with self reference to DefineRef parent attribute
         self._set_editable_template()
 
     # Mandatory elements
     title: str
 
-    editable: bool = False # Whether the use is allowed to edit the question text
-    
+    editable: bool = False  # Whether the use is allowed to edit the question text
+
     editable_obj: Optional[EditableTemplate] = None
-    historic_title: Optional[str] = "" # Stores original title before render
+    historic_title: Optional[str] = ""  # Stores original title before render
     start_delimiter: str = r"{{"
     end_delimiter: str = r"}}"
 
-    #parent_cluster: Optional[QuestionCluster] = None 
+    # parent_cluster: Optional[QuestionCluster] = None
     # Optional xml elements
     comment: str | None = None
     below: str | None = None
@@ -233,6 +246,7 @@ class Question(Element):
 
     exec: Exec | None = None
     validate: Validate | None = None
+    style: Style | None = None
     grouping: set[Grouping] = field(default_factory=set)
     optional: bool | None = None
     rightOf: str | None = None
@@ -244,12 +258,12 @@ class Question(Element):
     sortChoices: set[Sort] = field(default_factory=set)
     sortCols: set[Sort] = field(default_factory=set)
     sortRows: set[Sort] = field(default_factory=set)
-    uses: str | None = None 
+    uses: str | None = None
     values: str | None = None
     virtual: str | None = None
 
     ss_listDisplay: str | None = None
-    size: str | None = None 
+    size: str | None = None
 
     # For each field above, how to turn it into an XML attribute string
     # If the value is None, it will not be included in the XML element.
@@ -291,26 +305,26 @@ class Question(Element):
 
     @property
     def define_refs(self) -> Tuple[DefineRef, ...]:
-        """ Tuple of DefineRef instances within a questions rows """
+        """Tuple of DefineRef instances within a questions rows"""
         return tuple(r for r in getattr(self, "rows", ()) if isinstance(r, DefineRef))
-    
+
     def _bind_define_refs(self) -> None:
-        """ Adds self to parent of instances of DefineRef """
+        """Adds self to parent of instances of DefineRef"""
         seq = getattr(self, "define_refs", None)
         if not seq:
             return
         for item in seq:
             print("adding parent")
-            item.add_parent(q = self)
+            item.add_parent(q=self)
 
     def _set_editable_template(self) -> None:
-        """ Creates a EditableText class for the question """
-        self.editable_obj = (EditableTemplate(raw_template = self.title,
-                                                 start = self.start_delimiter,
-                                                 end = self.end_delimiter))
+        """Creates a EditableText class for the question"""
+        self.editable_obj = EditableTemplate(
+            raw_template=self.title, start=self.start_delimiter, end=self.end_delimiter
+        )
 
     def render_question(self):
-        """ Renders editable question with user changes """
+        """Renders editable question with user changes"""
         if not self.editable:
             return
         if not self.historic_title:
@@ -327,10 +341,14 @@ class Question(Element):
         exec_obj = getattr(self, "exec", None)
         if exec_obj is not None:
             el.append(exec_obj.to_xml_element())
-        # 1.5) append validate child if present (Exec dataclass has to_xml_element)
+        # 1.6) append validate child if present (Exec dataclass has to_xml_element)
         validate_obj = getattr(self, "validate", None)
         if validate_obj is not None:
             el.append(validate_obj.to_xml_element())
+        
+        style_obj = getattr(self, "style", None)
+        if style_obj is not None:
+            el.append(style_obj.to_xml_element())
 
         # 2) Append rows/cols/choices if they exist
         if hasattr(self, "rows"):
@@ -351,6 +369,16 @@ class Row(Cell):
     """
 
     XML_TAG = "row"
+
+
+@dataclass()
+class NoAnswer(Cell):
+    """
+    Attributes for <noanswer> elements. Only need XML_TAG here.
+    Inherits from Cell, which contains all the attributes and methods.
+    """
+
+    XML_TAG = "noanswer"
 
 
 @dataclass()
@@ -385,10 +413,8 @@ class RadioQuestion(Question):
 
     XML_TAG = "radio"
 
-    # Mandatory
-    rows: tuple[Row, ...]
-
-    # Optional
+    # rows may contain Row or NoAnswer
+    rows: tuple[Union[Row, "NoAnswer"], ...]
     cols: tuple[Col, ...] = ()
 
 
@@ -400,7 +426,7 @@ class AutoFill(Question):
 
     XML_TAG = "autofill"
 
-    rows: tuple[Row, ...] = ()
+    rows: tuple[Union[Row, "NoAnswer"], ...] = ()
 
 
 @dataclass(kw_only=True, eq=False)
@@ -412,10 +438,7 @@ class CheckboxQuestion(Question):
 
     XML_TAG = "checkbox"
     atleast: int = 1
-    # Mandatory
-    rows: tuple[Row, ...]
-
-    # Optional
+    rows: tuple[Union[Row, "NoAnswer"], ...]
     cols: tuple[Col, ...] = ()
 
 
@@ -428,9 +451,7 @@ class NumberQuestion(Question):
 
     XML_TAG = "number"
     size: int | None = None
-
-    # Optional
-    rows: tuple[Row, ...] = ()
+    rows: tuple[Union[Row, "NoAnswer"], ...] = ()
     cols: tuple[Col, ...] = ()
 
 
@@ -460,7 +481,7 @@ class TextQuestion(Question):
     size: int | None = None
 
     # Optional
-    rows: tuple[Row, ...] = ()
+    rows: tuple[Union[Row, "NoAnswer"], ...] = ()
     cols: tuple[Col, ...] = ()
 
 
@@ -475,7 +496,7 @@ class TextAreaQuestion(Question):
     size: int | None = None
 
     # Optional
-    rows: tuple[Row, ...] = ()
+    rows: tuple[Union[Row, "NoAnswer"], ...] = ()
     cols: tuple[Col, ...] = ()
 
 

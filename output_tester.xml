@@ -136,7 +136,7 @@ elif GENDER_FULL.r5 or GENDER_FULL.r98 or GENDER_FULL.r99 or GENDER_SHORT.r99:
     <row label="r3">Other/prefer not to say = CODE 5-7 AT GENDER_FULL OR 3 AT GENDER SHORT</row>
     </radio>
   <suspend />
-  <number label="AGE" optional="0" size="3">
+  <number label="AGE" verify="range(0,99)" optional="0" size="3">
     <title>What is your age?</title>
     <comment>Please enter a number.</comment>
     </number>
@@ -196,10 +196,11 @@ RECORD = ZIPCODES.get( this.r1.val )
 if not(RECORD):
   error(res.zipError)
       </validate>
-      <row label="r1">First part of postcode:</row>
+      <row label="r1" verify="len(2,4)">First part of postcode:</row>
+      <noanswer label="n99">Prefer not to answer</noanswer>
       </text>
     <suspend />
-    <exec>
+    <exec cond="POSTCODE.r1.any or POSTCODE.r1.any">
 if RECORD:
   print RECORD
   DUM_POSTCODE_INFO.r1.val = RECORD['postcode']
@@ -207,7 +208,7 @@ if RECORD:
   DUM_POSTCODE_INFO.r3.val = RECORD['region/country']
     </exec>
     <suspend />
-    <text label="DUM_POSTCODE_INFO" randomize="0" where="execute,report,survey" size="25">
+    <text label="DUM_POSTCODE_INFO" randomize="0" where="execute,report,survey" translateable="0" size="25">
       <title>Location information from postcode</title>
       <row label="r1">Postcode</row>
       <row label="r2">Area</row>
@@ -246,13 +247,14 @@ if DUM_POSTCODE_INFO.r3.val is not None:
     <suspend />
     </block>
   <block label="US_ZIPCODE" cond="DUM_COUNTRY.r840">
-    <text label="STD_ZIPCODE_US" optional="0">
+    <text label="STD_ZIPCODE_US" translateable="0" verify="zipcode" optional="0">
       <title>Please enter your 5-digit ZIP code below.</title>
       <validate>
 RECORD = ZIPCODES.get(STD_ZIPCODE_US.val)
 if not RECORD:
     error(res.STDZIPError)
       </validate>
+      <noanswer label="r99">Prefer not to answer</noanswer>
       </text>
     <suspend />
     <exec when="init">
@@ -283,7 +285,7 @@ if RECORD:
   DUM_Zipcode.r9.val = RECORD['censusregionname']
     </exec>
     <suspend />
-    <text label="DUM_Zipcode" randomize="0" where="execute,report,survey" size="25">
+    <text label="DUM_Zipcode" randomize="0" where="execute,report,survey" translateable="0" size="25">
       <title>Hidden Marker: US city name</title>
       <comment>Please enter your answer</comment>
       <row label="r1">CityName</row>
@@ -316,7 +318,7 @@ for eachrow in DUM_REGION.rows:
        DUM_REGION.val = DUM_REGION.r5.index
     </exec>
     <suspend />
-    <radio label="DUM_State" randomize="0" where="execute,report,survey" optional="1">
+    <radio label="DUM_State" randomize="0" where="execute,report,survey" translateable="0" optional="1">
       <title>Hidden Marker : US State</title>
       <comment>Please select an answer</comment>
       <row label="r1">New York</row>
@@ -371,7 +373,7 @@ for eachrow in DUM_REGION.rows:
       <row label="r50">Washington</row>
       <row label="r51">Alaska</row>
       </radio>
-    <radio label="DUM_CensusDivision" where="execute,report,survey" optional="1">
+    <radio label="DUM_CensusDivision" where="execute,report,survey" translateable="0" optional="1">
       <title>Hidden Marker : US Census Division&amp;nbsp;</title>
       <comment>Please select an answer</comment>
       <row label="r1">MIDDLE ATLANTIC</row>
@@ -384,7 +386,7 @@ for eachrow in DUM_REGION.rows:
       <row label="r8">WEST SOUTH CENTRAL</row>
       <row label="r9">PACIFIC</row>
       </radio>
-    <radio label="DUM_REGION" where="execute,report,survey" optional="1">
+    <radio label="DUM_REGION" where="execute,report,survey" translateable="0" optional="1">
       <title>CODE REGION BASED ON ZIP CODE</title>
       <comment>Please select an answer</comment>
       <row label="r1">NORTHEAST</row>
@@ -396,7 +398,7 @@ for eachrow in DUM_REGION.rows:
     <suspend />
     </block>
   <suspend />
-  <checkbox label="QC_WEEKEND" ss:listDisplay="1">
+  <checkbox label="QC_WEEKEND" shuffle="rows" ss:listDisplay="1">
     <title>Which, if any, of the following have you done over the past weekend?</title>
     <comment>${res.MP1}</comment>
     <row label="r1">Watched TV</row>
@@ -425,7 +427,7 @@ else :
     <row label="Fail">Fail</row>
     </radio>
   <suspend />
-  <checkbox label="DEVICES_HHLD" ss:listDisplay="1">
+  <checkbox label="DEVICES_HHLD" shuffle="rows" ss:listDisplay="1">
     <title>Which, if any, of these devices do you have in your household, even if you don’t personally use them?</title>
     <comment>${res.MP1}</comment>
     <row label="r1">Desktop/Laptop computer</row>
@@ -441,7 +443,7 @@ else :
     <row label="r99" randomize="0">None of these</row>
     </checkbox>
   <suspend />
-  <checkbox label="INDUSTRY" ss:listDisplay="1">
+  <checkbox label="INDUSTRY" shuffle="rows" ss:listDisplay="1">
     <title>Do you, or does anyone in your household, work in any of the following industries?</title>
     <comment>${res.MP1}</comment>
     <row label="r1">Television</row>
@@ -466,9 +468,18 @@ else :
     <row label="r2">No</row>
     </radio>
   <suspend />
-  <checkbox label="QC_DOG" cond="QC_DOG_CONSENT.r2" ss:listDisplay="1">
+  <checkbox label="QC_DOG" cond="QC_DOG_CONSENT.r2" shuffle="rows" ss:listDisplay="1">
     <title>Here are some pictures of dogs. Please select images that show real dogs</title>
     <comment>${res.MP1}</comment>
+    <style name="question.after">
+&lt;style type="text/css"&gt;
+.dog-pic {
+    height: 200px;
+    width: 200px;
+    object-fit: scale-down;
+}
+   &lt;/style&gt;
+</style>
     <row label="r1" alt="Real dog #1">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/7247213914.png" class="dog-pic" /&gt;</row>
     <row label="r2" alt="Real dog #2">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/0433861318.png" class="dog-pic" /&gt;</row>
     <row label="r3" alt="Real dog #3">&lt;img src="https://uk.focusvision.com/survey/selfserve/2222/240210/2378940374.png" class="dog-pic" /&gt;</row>
@@ -499,7 +510,7 @@ else:
       <row label="r2">No</row>
       </radio>
     <suspend />
-    <checkbox label="USA_ETHNICITY_2" ss:listDisplay="1">
+    <checkbox label="USA_ETHNICITY_2" shuffle="rows" ss:listDisplay="1">
       <title>What is your racial background?</title>
       <comment>${res.MP1}</comment>
       <row label="r1">Asian / Asian-American</row>

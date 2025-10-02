@@ -19,7 +19,7 @@ Date: September 2025
 
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, TypeAlias, List, Iterator, Tuple
+from typing import TYPE_CHECKING, TypeAlias, List, Iterator, Tuple, Optional
 
 from survey_elements.models.enums import Mode
 from survey_elements.utils.editables import EditableTemplate
@@ -83,6 +83,7 @@ class Exec:
 
     content: str
     when: str | None = None
+    cond: str | None = None
     parent: Optional[Question] = None  # associated Question
 
     def to_xml_element(self) -> ET.Element:
@@ -91,6 +92,8 @@ class Exec:
         attrs = {}
         if self.when:
             attrs["when"] = self.when
+        if self.cond:
+            attrs["cond"] = self.cond
         el = ET.Element("exec", attrs)
         el.text = self.content
         return el
@@ -171,7 +174,7 @@ class Res:
         return el
 
 
-@dataclass
+@dataclass(frozen=True)
 class Style:
     """
     A <style> tag
@@ -182,44 +185,20 @@ class Style:
     """
 
     name: str
-    label: str | None = None
-    copy: str | None = None
-    cond: str | None = None
-    rows: str | None = None
-    cols: str | None = None
-    mode: set[Mode] = field(default_factory=set)
-    after: str | None = None
-    before: str | None = None
-    withx: str | None = None
-    wrap: str | None = None
-    content: str | None = None
+    content: Optional[str] = None
+    type: Optional[str] = None
 
     def to_xml_element(self) -> ET.Element:
-        """Convert to an XML element"""
+        # Only include metadata as attributes; do NOT serialize `content` as an attribute.
         attrs = {}
-
-        all_attrs = {
-            "name": self.name,
-            "label": self.label,
-            "copy": self.copy,
-            "cond": self.cond,
-            "rows": self.rows,
-            "cols": self.cols,
-            # "mode": self.mode, # need to sort this one
-            "after": self.after,
-            "before": self.before,
-            "with": self.withx,
-            "wrap": self.wrap,
-            "content": self.content,
-        }
-
-        # Loop through adding attributes to final dict (if present)
-        for k, v in all_attrs.items():
-            if v not in [None, ""]:
-                attrs[k] = v
+        if self.name not in (None, ""):
+            attrs["name"] = self.name
+        if self.type not in (None, ""):
+            attrs["type"] = self.type
 
         el = ET.Element("style", attrs)
-        el.text = self.content
+        if self.content is not None:
+            el.text = self.content
         return el
 
 
