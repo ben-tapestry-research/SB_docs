@@ -28,34 +28,50 @@ Date: August 2025
 from dataclasses import dataclass, field
 import xml.etree.ElementTree as ET
 from typing import (
-
     Optional,
-
     Union,
     Tuple,
     Optional,
-
     TYPE_CHECKING,
 )
 import re
+from enum import Enum
 
 from survey_elements.models.enums import (
     Where,
     Grouping,
     Legend,
-    RowColChoiceShuffle,
-    Shuffle,
     Sort,
 )
 from survey_elements.utils.xml_helpers import _append_children
 from survey_elements.utils.xml_helpers import bool_bit, str_, csv
-from survey_elements.models.logic import DefineRef, Terminate
-from survey_elements.models.structural import Suspend, Exec, Note, HTML, Block, Validate, Style
+from survey_elements.models.logic import DefineRef
+from survey_elements.models.structural import (
+    Exec,
+    Validate,
+    Style,
+)
 from survey_elements.utils.editables import EditableTemplate
+from survey_elements.models import enums as _enums  # adjust import path if needed
 
 if TYPE_CHECKING:
     from .logic import *
     from .questions import *
+
+
+def _join_csv_field(v) -> str | None:
+    """Converter used by ATTR_MAP: accepts tuple/list/set/str -> returns CSV or None."""
+    if v is None:
+        return None
+    if isinstance(v, str):
+        return v if v != "" else None
+    try:
+        seq = tuple(v)
+    except TypeError:
+        return str(v)
+    if not seq:
+        return None
+    return ",".join(str(x) for x in seq)
 
 
 @dataclass
@@ -92,7 +108,10 @@ class Element:
         "disabled": bool_bit,
         "randomize": bool_bit,
         # only emit style attribute when the python field is a plain string
-        "style": ("style", lambda v: None if v is None or not isinstance(v, str) else str(v)),
+        "style": (
+            "style",
+            lambda v: None if v is None or not isinstance(v, str) else str(v),
+        ),
         "where": csv,
         "alt": str_,
         "altlabel": str_,
@@ -238,12 +257,10 @@ class Question(Element):
     comment: str | None = None
     below: str | None = None
     choiceCond: str | None = None
-    choiceShuffle: str | None = None
+
     colCond: str | None = None
     colLegend: str | None = None
-    colShuffle: bool | None = None
     cond: str | None = None
-
     exec: Exec | None = None
     validate: Validate | None = None
     style: Style | None = None
@@ -252,8 +269,6 @@ class Question(Element):
     rightOf: str | None = None
     rowCond: str | None = None
     rowLegend: set[Legend] = field(default_factory=set)
-    rowShuffle: set[RowColChoiceShuffle] = field(default_factory=set)
-    shuffle: set[Shuffle] = field(default_factory=set)
     shuffleBy: str | None = None
     sortChoices: set[Sort] = field(default_factory=set)
     sortCols: set[Sort] = field(default_factory=set)
@@ -261,9 +276,33 @@ class Question(Element):
     uses: str | None = None
     values: str | None = None
     virtual: str | None = None
-
-    ss_listDisplay: str | None = None
     size: str | None = None
+
+    # Survey styling (ss attributes)
+    ss_listDisplay: str | None = None
+
+    # Button rating attributes (atm1d) - https://forstasurveys.zendesk.com/hc/en-us/articles/4409461312923-Customizing-the-Button-Select-Element
+    atm1d_numCols: str | None = None
+    atm1d_showInput: str | None = None
+    atm1d_viewMode: tuple[str, ...] = field(default_factory=tuple)
+    atm1d_large_minHeight: str | None = None
+    atm1d_large_maxHeight: str | None = None
+    atm1d_large_minWidth: str | None = None
+    atm1d_large_maxWidth: str | None = None
+    atm1d_large_buttonAlign: tuple[str, ...] = field(default_factory=tuple)
+    atm1d_large_contentAlign: tuple[str, ...] = field(default_factory=tuple)
+    atm1d_small_minHeight: str | None = None
+    atm1d_small_maxHeight: str | None = None
+    atm1d_small_minWidth: str | None = None
+    atm1d_small_maxWidth: str | None = None
+    atm1d_small_buttonAlign: tuple[str, ...] = field(default_factory=tuple)
+    atm1d_small_contentAlign: tuple[str, ...] = field(default_factory=tuple)
+
+    # shuffle fields as CSV strings
+    shuffle: tuple[str, ...] = field(default_factory=tuple)
+    rowShuffle: tuple[str, ...] = field(default_factory=tuple)
+    colShuffle: tuple[str, ...] = field(default_factory=tuple)
+    choiceShuffle: tuple[str, ...] = field(default_factory=tuple)
 
     # For each field above, how to turn it into an XML attribute string
     # If the value is None, it will not be included in the XML element.
@@ -271,18 +310,12 @@ class Question(Element):
         **Element.ATTR_MAP,
         "below": str_,
         "choiceCond": str_,
-        "choiceShuffle": str_,
+        "choiceShuffle": ("choiceShuffle", _join_csv_field),
         "colCond": str_,
         "colLegend": str_,
-        "colShuffle": bool_bit,
-        "cond": str_,
-        "grouping": csv,
-        "optional": bool_bit,
-        "rightOf": str_,
-        "rowCond": str_,
-        "rowLegend": csv,
-        "rowShuffle": csv,
-        "shuffle": csv,
+        "colShuffle": ("colShuffle", _join_csv_field),
+        # shuffle is a set[Shuffle] -> emit CSV of enum values
+        "shuffle": ("shuffle", _join_csv_field),
         "shuffleBy": str_,
         "sortChoices": csv,
         "sortCols": csv,
@@ -291,8 +324,26 @@ class Question(Element):
         "values": str_,
         "virtual": str_,
         "ss_listDisplay": ("ss:listDisplay", str_),
-        # ensure size is emitted as attribute "size"
         "size": str_,
+        # atm1d mappings MUST use the colon form as the XML name
+        "atm1d_numCols": ("atm1d:numCols", str_),
+        "atm1d_showInput": ("atm1d:showInput", str_),
+        "atm1d_viewMode": ("atm1d:viewMode", _join_csv_field),
+        "atm1d_large_minHeight": ("atm1d:large_minHeight", str_),
+        "atm1d_large_maxHeight": ("atm1d:large_maxHeight", str_),
+        "atm1d_large_minWidth": ("atm1d:large_minWidth", str_),
+        "atm1d_large_maxWidth": ("atm1d:large_maxWidth", str_),
+        # buttonAlign stored as a set[Align]: emit first selected value (or None)
+        "atm1d_large_buttonAlign": ("atm1d:large_buttonAlign", _join_csv_field),
+        "atm1d_large_contentAlign": ("atm1d:large_contentAlign", _join_csv_field),
+        "atm1d_small_minHeight": ("atm1d:small_minHeight", str_),
+        "atm1d_small_maxHeight": ("atm1d:small_maxHeight", str_),
+        "atm1d_small_minWidth": ("atm1d:small_minWidth", str_),
+        "atm1d_small_maxWidth": ("atm1d:small_maxWidth", str_),
+        "atm1d_small_buttonAlign": ("atm1d:small_buttonAlign", _join_csv_field),
+        "rowShuffle": ("rowShuffle", _join_csv_field),
+        "colShuffle": ("colShuffle", _join_csv_field),
+        "atm1d_small_contentAlign": ("atm1d:small_contentAlign", _join_csv_field),
     }
 
     CHILD_TEXT_MAP = {
@@ -345,7 +396,7 @@ class Question(Element):
         validate_obj = getattr(self, "validate", None)
         if validate_obj is not None:
             el.append(validate_obj.to_xml_element())
-        
+
         style_obj = getattr(self, "style", None)
         if style_obj is not None:
             el.append(style_obj.to_xml_element())
@@ -509,3 +560,39 @@ class SelectQuestion(Question):
 
     XML_TAG = "select"
     choices: tuple[Choice, ...] = ()
+
+
+def _csv_to_enum_set(csv_text: str | None, enum_cls) -> set:
+    """Convert CSV/text -> set of enum members. Ignores empty values."""
+    if not csv_text:
+        return set()
+    parts = [p.strip() for p in csv_text.split(",") if p.strip()]
+    out = set()
+    for p in parts:
+        # try matching by name, value or label attribute
+        for member in enum_cls:
+            if (
+                p == member.name
+                or p == getattr(member, "value", None)
+                or p == getattr(member, "label", None)
+            ):
+                out.add(member)
+                break
+        else:
+            # fallback: leave as raw string (optional)
+            pass
+    return out
+
+
+def _single_to_enum(value: str | None, enum_cls):
+    s = (value or "").strip()
+    if not s:
+        return None
+    for member in enum_cls:
+        if (
+            s == member.name
+            or s == getattr(member, "value", None)
+            or s == getattr(member, "label", None)
+        ):
+            return member
+    return None

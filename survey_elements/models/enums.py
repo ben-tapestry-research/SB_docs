@@ -113,3 +113,23 @@ class Mode(str, Enum):
     INSTEAD = "instead"
     BEFORE = "before"
     AFTER = "after"
+
+class ViewMode(str, Enum):
+    """ 
+    Allowable values for the atm1d:viewMode attribute for a question
+    https://forstasurveys.zendesk.com/hc/en-us/articles/4409461312923-Customizing-the-Button-Select-Element
+    
+    """
+    VERTICAL = "vertical"
+    TILED = "Tiled"
+    HORIZONTAL = "Horizontal"
+
+class Align(str, Enum):
+    """ 
+    Allowable values for the atm1d:buttonAlign/contentAlign attributes for a question
+    https://forstasurveys.zendesk.com/hc/en-us/articles/4409461312923-Customizing-the-Button-Select-Element
+    
+    """
+    LEFT = "Left"
+    CENTER = "Center"
+    RIGHT = "Right"

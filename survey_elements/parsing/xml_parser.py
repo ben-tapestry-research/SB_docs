@@ -11,6 +11,7 @@ Date: September 2025
 import xml.etree.ElementTree as ET
 from typing import List
 import inspect
+from enum import Enum
 
 from survey_elements.models.questions import (
     Row,
@@ -54,9 +55,11 @@ from survey_elements.models.logic import (
 )
 
 from survey_elements.models.enums import (
+    Align,
+    ViewMode,
     Shuffle,
+    RowColChoiceShuffle,
     Where,
-    Mode,
 )
 from survey_elements.utils.xml_helpers import (
     _attr,
@@ -81,6 +84,34 @@ def _allowed_param_names(cls: type) -> set[str]:
 
 
 # ########################### NEW STUFF #############################
+
+def _split_csv_attr(val: str | None, enum_cls: type[Enum] | None = None) -> tuple[str, ...]:
+    """Split CSV attribute into ordered tuple. If enum_cls is provided, map tokens to enum.value when possible.
+
+    - preserves order
+    - canonicalises tokens to enum.value when matched by name or value (case-insensitive)
+    - keeps unknown tokens as-is (you can change to drop/raise)
+    """
+    if not val:
+        return tuple()
+    tokens = [p.strip() for p in val.split(",") if p.strip()]
+    if enum_cls is None:
+        return tuple(tokens)
+
+    out: list[str] = []
+    for t in tokens:
+        tl = t.strip()
+        matched = None
+        for m in enum_cls:
+            if tl.lower() == str(m.value).lower() or tl.lower() == m.name.lower():
+                matched = str(m.value)
+                break
+        if matched:
+            out.append(matched)
+        else:
+            # keep raw token if it doesn't match any enum member
+            out.append(tl)
+    return tuple(out)
 
 
 # ------------ QUESTION TYPES ------------------
@@ -114,26 +145,49 @@ def question_base(el: ET.Element) -> dict:
         style_obj = None
 
     return {
+        # Attributes (main)
         "label": _attr(el, "label"),
-        "title": _tag_text(el, "title"),
-        "rows": parse_rows(el),
-        "cols": parse_cols(el),
-        "choices": parse_choices(el),
-        "cond": _attr(el, "cond"),
-        "comment": _tag_text(el, "comment"),
-        "randomize": _bit(el, "randomize"),
-        "where": _parse_enum_set(el, "where", Where),
-        "optional": _bit(el, "optional"),
-        "exec": exec_obj,
-        "validate": validate_obj,
-        "style": style_obj,
-        "ss_listDisplay": _attr(el, "ss:listDisplay"),
-        "atleast": _bit(el, "atleast"),
         "size": _attr(el, "size"),
         "verify": _attr(el, "verify"),
         "range": _attr(el, "range"),
         "translateable": _attr(el, "translateable"),
-        "shuffle": _parse_enum_set(el, "shuffle", Shuffle),
+        "cond": _attr(el, "cond"),
+        "randomize": _bit(el, "randomize"),
+        "optional": _bit(el, "optional"),
+        "where": _parse_enum_set(el, "where", Where),
+        "atleast": _bit(el, "atleast"),
+        "shuffle": _split_csv_attr(_attr(el, "shuffle"), Shuffle),
+        "rowShuffle": _split_csv_attr(_attr(el, "rowShuffle"), RowColChoiceShuffle),
+        "colShuffle": _split_csv_attr(_attr(el, "colShuffle"), RowColChoiceShuffle),
+        "choiceShuffle": _split_csv_attr(_attr(el, "choiceShuffle"), RowColChoiceShuffle),
+        # atm1d / styling
+        "ss_listDisplay": _attr(el, "ss:listDisplay"),
+        "atm1d_numCols": _attr(el, "atm1d:numCols"),
+        "atm1d_showInput": _attr(el, "atm1d:showInput"),
+        "atm1d_viewMode": _split_csv_attr(_attr(el, "atm1d:viewMode"), ViewMode),
+        "atm1d_large_minHeight": _attr(el, "atm1d:large_minHeight"),
+        "atm1d_large_maxHeight": _attr(el, "atm1d:large_maxHeight"),
+        "atm1d_large_minWidth": _attr(el, "atm1d:large_minWidth"),
+        "atm1d_large_maxWidth": _attr(el, "atm1d:large_maxWidth"),
+        "atm1d_large_buttonAlign": _split_csv_attr(_attr(el, "atm1d:large_buttonAlign"), Align),
+        "atm1d_large_contentAlign": _split_csv_attr(_attr(el, "atm1d:large_contentAlign"), Align),
+        "atm1d_small_minHeight": _attr(el, "atm1d:small_minHeight"),
+        "atm1d_small_maxHeight": _attr(el, "atm1d:small_maxHeight"),
+        "atm1d_small_minWidth": _attr(el, "atm1d:small_minWidth"),
+        "atm1d_small_maxWidth": _attr(el, "atm1d:small_maxWidth"),
+        "atm1d_small_buttonAlign": _split_csv_attr(_attr(el, "atm1d:small_buttonAlign"), Align),
+        "atm1d_small_contentAlign": _split_csv_attr(_attr(el, "atm1d:small_contentAlign"), Align),
+        # Tags
+        "title": _tag_text(el, "title"),
+        "comment": _tag_text(el, "comment"),
+        "rows": parse_rows(el),
+        "cols": parse_cols(el),
+        "choices": parse_choices(el),
+        # Child objects (that have attributes on the tags themselves)
+        "exec": exec_obj,
+        "validate": validate_obj,
+        "style": style_obj,
+        
     }
 
 
@@ -222,53 +276,53 @@ def build_element(cls, el: ET.Element):
 
 
 def parse_radio(radio_el: ET.Element) -> RadioQuestion:
-    """ Parses a <radio> ElementTree element into a RadioQuestion object."""
+    """Parses a <radio> ElementTree element into a RadioQuestion object."""
     return build_question(RadioQuestion, radio_el)
 
 
 def parse_checkbox(checkbox_el: ET.Element) -> CheckboxQuestion:
-    """ Parses a <checkbox> ElementTree element into a CheckboxQuestion object."""
+    """Parses a <checkbox> ElementTree element into a CheckboxQuestion object."""
     return build_question(CheckboxQuestion, checkbox_el)
 
 
 def parse_select(select_el: ET.Element) -> SelectQuestion:
-    """ Parses a <select> ElementTree element into a SelectQuestion object."""
+    """Parses a <select> ElementTree element into a SelectQuestion object."""
     return build_question(SelectQuestion, select_el)
 
 
 def parse_autofill(autofill_el: ET.Element) -> AutoFill:
-    """ Parses an <autofill> ElementTree element into an AutoFill object."""
+    """Parses an <autofill> ElementTree element into an AutoFill object."""
     return build_question(AutoFill, autofill_el)
 
 
 def parse_number(number_el: ET.Element) -> NumberQuestion:
-    """ Parses a <number> ElementTree element into a NumberQuestion object."""
+    """Parses a <number> ElementTree element into a NumberQuestion object."""
     return build_question(NumberQuestion, number_el)
 
 
 def parse_float(float_el: ET.Element) -> FloatQuestion:
-    """ Parses a <float> ElementTree element into a FloatQuestion object."""
+    """Parses a <float> ElementTree element into a FloatQuestion object."""
     return build_question(FloatQuestion, float_el)
 
 
 def parse_text(text_el: ET.Element) -> TextQuestion:
-    """ Parses a <text> ElementTree element into a TextQuestion object."""
+    """Parses a <text> ElementTree element into a TextQuestion object."""
     return build_question(TextQuestion, text_el)
 
 
 def parse_textarea(textarea_el: ET.Element) -> TextAreaQuestion:
-    """ Parses a <textarea> ElementTree element into a TextAreaQuestion object."""
+    """Parses a <textarea> ElementTree element into a TextAreaQuestion object."""
     return build_question(TextAreaQuestion, textarea_el)
 
 
 # -------------- ELEMENTS --------------------
 def parse_row(row_el: ET.Element) -> Row:
-    """ Parses a <row> ElementTree element into a Row object."""
+    """Parses a <row> ElementTree element into a Row object."""
     return build_element(Row, row_el)
 
 
 def parse_noanswer(na_el: ET.Element) -> NoAnswer:
-    """ Parses a <noanswer> ElementTree element into a NoAnswer object."""
+    """Parses a <noanswer> ElementTree element into a NoAnswer object."""
     return build_element(NoAnswer, na_el)
 
 
@@ -288,22 +342,22 @@ def parse_rows(parent: ET.Element) -> tuple[Row | NoAnswer, ...]:
 
 
 def parse_col(col_el: ET.Element) -> Col:
-    """ Parses a <col> ElementTree element into a Col object."""
+    """Parses a <col> ElementTree element into a Col object."""
     return build_element(Col, col_el)
 
 
 def parse_cols(parent: ET.Element) -> tuple[Col, ...]:
-    """ Parses all <col> children of the given parent element and returns a tuple of Col objects."""
+    """Parses all <col> children of the given parent element and returns a tuple of Col objects."""
     return tuple(parse_col(el) for el in parent.findall("col"))
 
 
 def parse_choice(choice_el: ET.Element) -> Choice:
-    """ Parses a <choice> ElementTree element into a Choice object."""
+    """Parses a <choice> ElementTree element into a Choice object."""
     return build_element(Choice, choice_el)
 
 
 def parse_choices(parent: ET.Element) -> tuple[Choice, ...]:
-    """ Parses all <choice> children of the given parent element and returns a tuple of Choice objects."""
+    """Parses all <choice> children of the given parent element and returns a tuple of Choice objects."""
     return tuple(parse_choice(r) for r in parent.findall("choice"))
 
 
