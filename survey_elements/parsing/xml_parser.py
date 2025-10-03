@@ -24,7 +24,7 @@ from survey_elements.models.questions import (
     TextQuestion,
     TextAreaQuestion,
     SelectQuestion,
-    NoAnswer
+    NoAnswer,
 )
 
 from survey_elements.models.structural import (
@@ -66,7 +66,12 @@ from survey_elements.utils.xml_helpers import (
 )
 
 
-def _allowed_param_names(cls):
+def _allowed_param_names(cls: type) -> set[str]:
+    """Return the set of parameter names accepted by the __init__ of the given class.
+    If the signature cannot be inspected, returns an empty set.
+
+    Args:
+        cls (type): A class type (e.g. RadioQuestion)"""
     try:
         params = set(inspect.signature(cls).parameters)
     except (TypeError, ValueError):
@@ -79,7 +84,14 @@ def _allowed_param_names(cls):
 
 
 # ------------ QUESTION TYPES ------------------
-def question_base(el):
+def question_base(el: ET.Element) -> dict:
+    """Extracts fields from question elements (e.g. <radio>, <checkbox>, etc.). Used by all question parsers to avoid code duplication.
+    Args:
+        el (ET.Element): An ElementTree element representing a question tag
+    Returns:
+        dict: A dictionary of fields (some may be None)
+
+    """
     # <exec> can be a child element of a question
     exec_el = el.find("exec")
     if exec_el is not None:
@@ -125,7 +137,12 @@ def question_base(el):
     }
 
 
-def element_base(el):
+def element_base(el: ET.Element) -> dict:
+    """
+    Extracts fields for elements (e.g. <row>, <col>, <choice>, etc.). Used by all element parsers to avoid code duplication.
+
+    Args:
+        el (ET.Element): An ElementTree element representing a question tag"""
     return {
         # Mandatory
         "label": _attr(el, "label"),
@@ -143,7 +160,16 @@ def element_base(el):
     }
 
 
-def build_question(cls, el):
+def build_question(cls, el: ET.Element):
+    """
+    Builds a question object of the given class from the given XML element.
+
+    Args:
+        cls: The question class to instantiate (e.g. RadioQuestion)
+        el (ET.Element): The ElementTree element representing the question
+    Returns:
+        An instance of the given question class
+    """
     dct = question_base(el)
 
     # drop Nones
@@ -159,10 +185,19 @@ def build_question(cls, el):
     if allowed:
         dct = {k: v for k, v in dct.items() if k in allowed}
 
+    # Dictionary now only contains keys that cls accepts
+
+    # Return the constructed question object. Works by unpacking the dictionary into keyword arguments. E.g. RadioQuestion(**dct).
     return cls(**dct)
 
 
-def build_element(cls, el):
+def build_element(cls, el: ET.Element):
+    """Builds an element object of the given class from the given XML element.
+    Args:
+        cls: The element class to instantiate (e.g. Row, Col, Choice)
+        el (ET.Element): The ElementTree element representing the element
+    Returns:
+        An instance of the given element class"""
     dct = element_base(el)
     # drop None values
     dct = {k: v for k, v in dct.items() if v is not None}
@@ -176,7 +211,9 @@ def build_element(cls, el):
 
     unexpected_nonempty = [k for k in unknown if _meaningful(dct.get(k))]
     if unexpected_nonempty:
-        print(f"[build_element] {cls.__name__} ignoring unexpected fields: {sorted(unexpected_nonempty)}")
+        print(
+            f"[build_element] {cls.__name__} ignoring unexpected fields: {sorted(unexpected_nonempty)}"
+        )
 
     # keep only allowed keys so cls(**dct) won't raise
     dct = {k: v for k, v in dct.items() if k in allowed}
@@ -185,42 +222,53 @@ def build_element(cls, el):
 
 
 def parse_radio(radio_el: ET.Element) -> RadioQuestion:
+    """ Parses a <radio> ElementTree element into a RadioQuestion object."""
     return build_question(RadioQuestion, radio_el)
 
 
 def parse_checkbox(checkbox_el: ET.Element) -> CheckboxQuestion:
+    """ Parses a <checkbox> ElementTree element into a CheckboxQuestion object."""
     return build_question(CheckboxQuestion, checkbox_el)
 
 
 def parse_select(select_el: ET.Element) -> SelectQuestion:
+    """ Parses a <select> ElementTree element into a SelectQuestion object."""
     return build_question(SelectQuestion, select_el)
 
 
 def parse_autofill(autofill_el: ET.Element) -> AutoFill:
+    """ Parses an <autofill> ElementTree element into an AutoFill object."""
     return build_question(AutoFill, autofill_el)
 
 
 def parse_number(number_el: ET.Element) -> NumberQuestion:
+    """ Parses a <number> ElementTree element into a NumberQuestion object."""
     return build_question(NumberQuestion, number_el)
 
 
 def parse_float(float_el: ET.Element) -> FloatQuestion:
+    """ Parses a <float> ElementTree element into a FloatQuestion object."""
     return build_question(FloatQuestion, float_el)
 
 
 def parse_text(text_el: ET.Element) -> TextQuestion:
+    """ Parses a <text> ElementTree element into a TextQuestion object."""
     return build_question(TextQuestion, text_el)
 
 
 def parse_textarea(textarea_el: ET.Element) -> TextAreaQuestion:
+    """ Parses a <textarea> ElementTree element into a TextAreaQuestion object."""
     return build_question(TextAreaQuestion, textarea_el)
 
 
 # -------------- ELEMENTS --------------------
 def parse_row(row_el: ET.Element) -> Row:
+    """ Parses a <row> ElementTree element into a Row object."""
     return build_element(Row, row_el)
 
+
 def parse_noanswer(na_el: ET.Element) -> NoAnswer:
+    """ Parses a <noanswer> ElementTree element into a NoAnswer object."""
     return build_element(NoAnswer, na_el)
 
 
@@ -240,18 +288,22 @@ def parse_rows(parent: ET.Element) -> tuple[Row | NoAnswer, ...]:
 
 
 def parse_col(col_el: ET.Element) -> Col:
+    """ Parses a <col> ElementTree element into a Col object."""
     return build_element(Col, col_el)
 
 
 def parse_cols(parent: ET.Element) -> tuple[Col, ...]:
+    """ Parses all <col> children of the given parent element and returns a tuple of Col objects."""
     return tuple(parse_col(el) for el in parent.findall("col"))
 
 
 def parse_choice(choice_el: ET.Element) -> Choice:
+    """ Parses a <choice> ElementTree element into a Choice object."""
     return build_element(Choice, choice_el)
 
 
 def parse_choices(parent: ET.Element) -> tuple[Choice, ...]:
+    """ Parses all <choice> children of the given parent element and returns a tuple of Choice objects."""
     return tuple(parse_choice(r) for r in parent.findall("choice"))
 
 
@@ -273,7 +325,11 @@ def parse_block(block_el: ET.Element) -> Block:
             raise ValueError(
                 f"ERROR PARSING BLOCK {_attr(block_el, 'label')}. Found {child.tag} element in a block that does not have a parser"
             )
-    return Block(label=_attr(block_el, "label"), cond=_attr(block_el, "cond"), children=tuple(children))
+    return Block(
+        label=_attr(block_el, "label"),
+        cond=_attr(block_el, "cond"),
+        children=tuple(children),
+    )
 
 
 def parse_note(note_el: ET.Element) -> Note:
