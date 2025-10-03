@@ -160,6 +160,7 @@ def question_base(el: ET.Element) -> dict:
         "rowShuffle": _split_csv_attr(_attr(el, "rowShuffle"), RowColChoiceShuffle),
         "colShuffle": _split_csv_attr(_attr(el, "colShuffle"), RowColChoiceShuffle),
         "choiceShuffle": _split_csv_attr(_attr(el, "choiceShuffle"), RowColChoiceShuffle),
+        "uses": _attr(el, "uses"),
         # atm1d / styling
         "ss_listDisplay": _attr(el, "ss:listDisplay"),
         "atm1d_numCols": _attr(el, "atm1d:numCols"),

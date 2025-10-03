@@ -55,7 +55,7 @@ thisQuestion.val = thisQuestion.non_para.index
     <row label="non_para">Non Paramount study</row>
     </radio>
   <suspend />
-  <radio label="COUNTRY" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="250px" atm1d:large_buttonAlign="Center">
+  <radio label="COUNTRY" uses="atm1d.11" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="250px" atm1d:large_buttonAlign="Center">
     <title>In which country do you live?</title>
     <comment>${res.SP1}</comment>
     <row label="r32" alt="Argentina" value="32">Argentina</row>
@@ -99,7 +99,7 @@ thisQuestion.val = thisQuestion.non_para.index
   <suspend />
   <term label="TERM_COUNTRY" cond="COUNTRY.selected.label != DUM_COUNTRY.selected.label">COUNTRY: No match</term>
   <suspend />
-  <radio label="GENDER_FULL" cond="DUM_PARAMOUNT_STUDY.non_para" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="250px" atm1d:large_buttonAlign="Center">
+  <radio label="GENDER_FULL" cond="DUM_PARAMOUNT_STUDY.non_para" uses="atm1d.11" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="250px" atm1d:large_buttonAlign="Center">
     <title>Which gender do you identify as?</title>
     <comment>${res.SP1}</comment>
     <row label="r1">Man</row>
@@ -111,7 +111,7 @@ thisQuestion.val = thisQuestion.non_para.index
     <row label="r99">Prefer not to say</row>
     </radio>
   <suspend />
-  <radio label="GENDER_SHORT" cond="DUM_PARAMOUNT_STUDY.para" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="250px" atm1d:large_buttonAlign="Center">
+  <radio label="GENDER_SHORT" cond="DUM_PARAMOUNT_STUDY.para" uses="atm1d.11" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="250px" atm1d:large_buttonAlign="Center">
     <title>Which gender do you identify as?</title>
     <comment>${res.SP1}</comment>
     <row label="r1">Male</row>
@@ -228,7 +228,7 @@ if DUM_POSTCODE_INFO.r3.val is not None:
     print "coded yorkshire"
     REGION_UK.val = REGION_UK.r3.index
     </exec>
-    <radio label="REGION_UK" cond="POSTCODE.n99" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="auto" atm1d:large_buttonAlign="Center">
+    <radio label="REGION_UK" cond="POSTCODE.n99" uses="atm1d.11" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="auto" atm1d:large_buttonAlign="Center">
       <title>In which of the following regions do you live?</title>
       <comment>${res.SP1}</comment>
       <row label="r1">North East England</row>
@@ -398,7 +398,7 @@ for eachrow in DUM_REGION.rows:
     <suspend />
     </block>
   <suspend />
-  <checkbox label="QC_WEEKEND" shuffle="rows" ss:listDisplay="1" atm1d:showInput="0">
+  <checkbox label="QC_WEEKEND" shuffle="rows" uses="atm1d.11" ss:listDisplay="1" atm1d:showInput="0">
     <title>Which, if any, of the following have you done over the past weekend?</title>
     <comment>${res.MP1}</comment>
     <row label="r1">Watched TV</row>
@@ -427,7 +427,7 @@ else :
     <row label="Fail">Fail</row>
     </radio>
   <suspend />
-  <checkbox label="DEVICES_HHLD" shuffle="rows" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="300px" atm1d:large_buttonAlign="Center">
+  <checkbox label="DEVICES_HHLD" shuffle="rows" uses="atm1d.11" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="300px" atm1d:large_buttonAlign="Center">
     <title>Which, if any, of these devices do you have in your household, even if you don’t personally use them?</title>
     <comment>${res.MP1}</comment>
     <row label="r1">Desktop/Laptop computer</row>
@@ -443,7 +443,7 @@ else :
     <row label="r99" randomize="0">None of these</row>
     </checkbox>
   <suspend />
-  <checkbox label="INDUSTRY" shuffle="rows" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="auto" atm1d:large_buttonAlign="Center">
+  <checkbox label="INDUSTRY" shuffle="rows" uses="atm1d.11" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="auto" atm1d:large_buttonAlign="Center">
     <title>Do you, or does anyone in your household, work in any of the following industries?</title>
     <comment>${res.MP1}</comment>
     <row label="r1">Television</row>
@@ -461,14 +461,14 @@ else :
   <suspend />
   <term label="TERM_IND" cond="INDUSTRY.r1 or INDUSTRY.r2 or INDUSTRY.r3 or INDUSTRY.r4 or INDUSTRY.r5">INDUSTRY: Wrong industry</term>
   <suspend />
-  <radio label="QC_DOG_CONSENT" ss:listDisplay="1" atm1d:showInput="0">
+  <radio label="QC_DOG_CONSENT" uses="atm1d.11" ss:listDisplay="1" atm1d:showInput="0">
     <title>Are you using a screen-reader or any other assistive technology to complete this survey?</title>
     <comment>${res.SP1}</comment>
     <row label="r1">Yes</row>
     <row label="r2">No</row>
     </radio>
   <suspend />
-  <checkbox label="QC_DOG" cond="QC_DOG_CONSENT.r2" shuffle="rows" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="auto" atm1d:large_buttonAlign="Center">
+  <checkbox label="QC_DOG" cond="QC_DOG_CONSENT.r2" shuffle="rows" uses="atm1d.11" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="auto" atm1d:large_buttonAlign="Center">
     <title>Here are some pictures of dogs. Please select images that show real dogs</title>
     <comment>${res.MP1}</comment>
     <style name="question.after">
@@ -503,14 +503,14 @@ else:
     </radio>
   <suspend />
   <block label="USA_ETHNICITY" cond="DUM_COUNTRY.r840">
-    <radio label="USA_ETHNICITY_1" ss:listDisplay="1" atm1d:showInput="0">
+    <radio label="USA_ETHNICITY_1" uses="atm1d.11" ss:listDisplay="1" atm1d:showInput="0">
       <title>Are you Spanish, Hispanic, or Latinx such as Mexican, Mexican-American, Chicano, Puerto Rican, Cuban, or another Spanish, Hispanic, or Latinx group?</title>
       <comment>${res.SP1}</comment>
       <row label="r1">Yes</row>
       <row label="r2">No</row>
       </radio>
     <suspend />
-    <checkbox label="USA_ETHNICITY_2" shuffle="rows" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="auto" atm1d:large_buttonAlign="Center">
+    <checkbox label="USA_ETHNICITY_2" shuffle="rows" uses="atm1d.11" ss:listDisplay="1" atm1d:showInput="0" atm1d:viewMode="Tiled" atm1d:large_maxHeight="auto" atm1d:large_maxWidth="auto" atm1d:large_buttonAlign="Center">
       <title>What is your racial background?</title>
       <comment>${res.MP1}</comment>
       <row label="r1">Asian / Asian-American</row>
@@ -592,7 +592,7 @@ elif DUM_US_ETH_1.count == 1:
     <suspend />
     </block>
   <suspend />
-  <radio label="QC_ATTENTION">
+  <radio label="QC_ATTENTION" uses="cardsort.8">
     <title>How much do you agree or disagree that each of the words below describe you?</title>
     <comment>${res.SP1}</comment>
     <row label="r1">Sophisticated</row>
@@ -620,7 +620,7 @@ else :
     <row label="Fail">Fail</row>
     </radio>
   <suspend />
-  <radio label="QC_CONTRADICTION">
+  <radio label="QC_CONTRADICTION" uses="cardsort.8">
     <title>How much do you agree or disagree with each of the following statements?</title>
     <comment>${res.SP1}</comment>
     <row label="r1">I love shopping for things online</row>
