@@ -229,7 +229,7 @@ class Terminate:
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
         attrs = {"label": self.label, "cond": self.cond}
-        el = ET.Element("terminate", attrs)
+        el = ET.Element("term", attrs)
         el.text = self.content
         return el
 

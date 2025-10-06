@@ -19,7 +19,7 @@ Date: September 2025
 
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, TypeAlias, List, Iterator, Tuple
+from typing import TYPE_CHECKING, TypeAlias, List, Iterator, Tuple, Optional
 
 from survey_elements.models.enums import Mode
 from survey_elements.utils.editables import EditableTemplate
@@ -41,8 +41,9 @@ class Note:
     Methods:
     to_xml_element() -> ET.Element: Convert to an XML element
     """
+
     content: str
-    parent: Optional[Question] = None # associated Question
+    parent: Optional[Question] = None  # associated Question
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
@@ -51,7 +52,7 @@ class Note:
         return el
 
 
-@dataclass(frozen=True, eq = False)
+@dataclass(frozen=True, eq=False)
 class Suspend:
     """
     A <suspend> tag (page break)
@@ -60,9 +61,10 @@ class Suspend:
     Methods:
         to_xml_element() -> ET.Element: Convert to an XML element
     """
-    __hash__ = object.__hash__ # create unique hash to identify each instance
 
-    parent: Optional[Question] = None # associated Question
+    __hash__ = object.__hash__  # create unique hash to identify each instance
+
+    parent: Optional[Question] = None  # associated Question
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
@@ -81,14 +83,39 @@ class Exec:
 
     content: str
     when: str | None = None
-    parent: Optional[Question] = None # associated Question
+    cond: str | None = None
+    parent: Optional[Question] = None  # associated Question
 
     def to_xml_element(self) -> ET.Element:
         """Convert to an XML element"""
-        el = ET.Element("exec")
+
+        attrs = {}
+        if self.when:
+            attrs["when"] = self.when
+        if self.cond:
+            attrs["cond"] = self.cond
+        el = ET.Element("exec", attrs)
         el.text = self.content
         return el
 
+@dataclass(frozen=True)
+class Validate:
+    """
+    An <validate> tag
+
+    Methods:
+        to_xml_element() -> ET.Element: Convert to an XML element
+    """
+
+    content: str
+    parent: Optional[Question] = None  # associated Question
+
+    def to_xml_element(self) -> ET.Element:
+        """Convert to an XML element"""
+
+        el = ET.Element("validate")
+        el.text = self.content
+        return el
 
 @dataclass
 class Block:
@@ -101,6 +128,7 @@ class Block:
     """
 
     label: str | None = None
+    cond: str | None = None
     # Define the alias as a STRING so it’s not evaluated at runtime
     BlockChild: TypeAlias = (
         "RadioQuestion | CheckboxQuestion | NumberQuestion | FloatQuestion | "
@@ -113,6 +141,7 @@ class Block:
         """Convert to an XML element"""
         attrs = {}
         attrs["label"] = self.label
+        attrs["cond"] = self.cond
         el = ET.Element("block", attrs)
 
         for child in self.children:
@@ -129,7 +158,7 @@ class Res:
     """
     A <res> tag (used to create reusable text resources)
     https://forstasurveys.zendesk.com/hc/en-us/articles/4409469873563-Resource-Tag-Create-Translatable-Resources
-    
+
     Methods:
         to_xml_element() -> ET.Element: Convert to an XML element
     """
@@ -145,55 +174,31 @@ class Res:
         return el
 
 
-@dataclass
+@dataclass(frozen=True)
 class Style:
     """
     A <style> tag
     https://forstasurveys.zendesk.com/hc/en-us/articles/4409461374491-XML-Style-System
-    
+
     Methods:
         to_xml_element() -> ET.Element: Convert to an XML element
     """
 
     name: str
-    label: str | None = None
-    copy: str | None = None
-    cond: str | None = None
-    rows: str | None = None
-    cols: str | None = None
-    mode: set[Mode] = field(default_factory=set)
-    after: str | None = None
-    before: str | None = None
-    withx: str | None = None
-    wrap: str | None = None
-    content: str | None = None
+    content: Optional[str] = None
+    type: Optional[str] = None
 
     def to_xml_element(self) -> ET.Element:
-        """Convert to an XML element"""
+        # Only include metadata as attributes; do NOT serialize `content` as an attribute.
         attrs = {}
-
-        all_attrs = {
-            "name": self.name,
-            "label": self.label,
-            "copy": self.copy,
-            "cond": self.cond,
-            "rows": self.rows,
-            "cols": self.cols,
-            # "mode": self.mode, # need to sort this one
-            "after": self.after,
-            "before": self.before,
-            "with": self.withx,
-            "wrap": self.wrap,
-            "content": self.content,
-        }
-
-        # Loop through adding attributes to final dict (if present)
-        for k, v in all_attrs.items():
-            if v not in [None, ""]:
-                attrs[k] = v
+        if self.name not in (None, ""):
+            attrs["name"] = self.name
+        if self.type not in (None, ""):
+            attrs["type"] = self.type
 
         el = ET.Element("style", attrs)
-        el.text = self.content
+        if self.content is not None:
+            el.text = self.content
         return el
 
 
@@ -206,25 +211,26 @@ class HTML:
     Methods:
         to_xml_element() -> ET.Element: Convert to an XML element
     """
+
     def __post_init__(self) -> None:
-        """ Functions called post initiation """
+        """Functions called post initiation"""
         self._set_editable_template()
 
     label: str
     content: str
 
     historic_content: str = ""
-    editable: bool = False # Whether the user is allowed to edit the label
+    editable: bool = False  # Whether the user is allowed to edit the label
     editable_obj: EditableTemplate = None
 
     def _set_editable_template(self) -> None:
-        """ Creates a EditableText class for the content """
-        self.editable_obj = (EditableTemplate(raw_template = self.content,
-                                                 start = r"{{",
-                                                 end = r"}}"))
+        """Creates a EditableText class for the content"""
+        self.editable_obj = EditableTemplate(
+            raw_template=self.content, start=r"{{", end=r"}}"
+        )
 
     def render_content(self):
-        """ Renders editable content with user changes """
+        """Renders editable content with user changes"""
         if not self.editable:
             return
         if not self.historic_content:

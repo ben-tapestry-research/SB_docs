@@ -4,364 +4,362 @@ Parses survey XML into Python objects
 Each function takes an ElementTree Element representing the XML tag, and returns the corresponding object.
 (e.g. parse_radio takes an <radio> tag and returns a RadioQuestion object)
 
-Functions:
-- parse_row - Parses a <row> tag into a Row object
-- parse_rows - Parses all <row> tags within a parent element into a tuple of Row objects
-- parse_col - Parses a <col> tag into a Col object
-- parse_cols - Parses all <col> tags within a parent element into a tuple of Col objects
-- parse_choice - Parses a <choice> tag into a Choice object
-- parse_choices - Parses all <choice> tags within a parent element into a tuple of Choice objects
-- parse_radio - Parses a <radio> tag into a RadioQuestion object
-- parse_checkbox - Parses a <checkbox> tag into a CheckboxQuestion object
-- parse_select - Parses a <select> tag into a SelectQuestion object
-- parse_number - Parses a <number> tag into a NumberQuestion object
-- parse_float - Parses a <float> tag into a FloatQuestion object
-- parse_text - Parses a <text> tag into a TextQuestion object
-- parse_textarea - Parses a <textarea> tag into a TextAreaQuestion object
-- parse_block - Parses a <block> tag into a Block object, recursively parsing child elements
-- parse_note - Parses a <note> tag into a Note object
-- parse_suspend - Parses a <suspend> tag into a Suspend object
-- parse_exec - Parses an <exec> tag into an Exec object
-- parse_html - Parses an <html> tag into an HTML object
-- parse_define - Parses a <define> tag into a Define object
-- parse_loop - Parses a <loop> tag into a Loop object, recursively parsing child elements
-- parse_loopvar - Parses a <loopvar> tag into a Loopvar object
-- parse_looprow - Parses a <looprow> tag into a Looprow object
-- parse_quota - Parses a <quota> tag into a Quota object
-- parse_goto - Parses a <goto> tag into a GoTo object
-- parse_term - Parses a <term> tag into a Terminate object
-- parse_survey - Parses an entire survey XML file into a tuple of Element objects
-- parse_res - Parses a <res> tag into a Res object
-- parse_logic - Parses a <logic> tag into a Logic object
-- parse_style - Parses a <style> tag into a Style object
-- parse_sample_sources - Parses a <samplesources> tag into a SampleSources object
-- parse_sample_source - Parses a <samplesource> tag into a SampleSource object
-- parse_var - Parses a <var> tag into a Var object
-- parse_exit - Parses an <exit> tag into an Exit object
-- parse_condition - Parses a <condition> tag into a Condition object
-
 Author: Ben Andrews
 Date: September 2025
 """
 
 import xml.etree.ElementTree as ET
 from typing import List
+import inspect
+from enum import Enum
 
+from survey_elements.models.questions import (
+    Row,
+    Col,
+    Choice,
+    RadioQuestion,
+    AutoFill,
+    CheckboxQuestion,
+    NumberQuestion,
+    FloatQuestion,
+    TextQuestion,
+    TextAreaQuestion,
+    SelectQuestion,
+    NoAnswer,
+)
 
-from survey_elements.models.questions import (Element, Cell, Question, 
-                                              Row, Col, Choice, RadioQuestion, 
-                                              AutoFill, CheckboxQuestion, NumberQuestion, 
-                                              FloatQuestion, TextQuestion, TextAreaQuestion, SelectQuestion)
+from survey_elements.models.structural import (
+    Note,
+    Suspend,
+    Exec,
+    Block,
+    Res,
+    Style,
+    HTML,
+    Validate,
+)
+from survey_elements.models.logic import (
+    Loopvar,
+    Looprow,
+    Loop,
+    Quota,
+    GoTo,
+    Define,
+    Terminate,
+    Logic,
+    SampleSources,
+    SampleSource,
+    Var,
+    Exit,
+    Condition,
+)
 
-from survey_elements.models.structural import Note, Suspend, Exec, Block, Res, Style, HTML
-from survey_elements.models.logic import (Loopvar, Looprow, Loop, 
-                                          Quota, GoTo, Define, 
-                                          Terminate, Logic, SampleSources, 
-                                          SampleSource, Var, Exit, Condition, DefineRef)
-
-from survey_elements.models.enums import Where, Grouping, Legend, RowColChoiceShuffle, Shuffle, Sort, Mode
+from survey_elements.models.enums import (
+    Align,
+    ViewMode,
+    Shuffle,
+    RowColChoiceShuffle,
+    Where,
+)
 from survey_elements.utils.xml_helpers import (
     _attr,
     _tag_text,
     _parse_enum_set,
     _bit,
-    _int_attr,
 )
 
 
-# ------------ ROWS ---------------
-
-
-def parse_row(row_el: ET.Element) -> Row:
-    """
-    Given an ElementTree <row> tag, covert into Row object
+def _allowed_param_names(cls: type) -> set[str]:
+    """Return the set of parameter names accepted by the __init__ of the given class.
+    If the signature cannot be inspected, returns an empty set.
 
     Args:
-        row_el (ET): A <row> tag as ElementTree
+        cls (type): A class type (e.g. RadioQuestion)"""
+    try:
+        params = set(inspect.signature(cls).parameters)
+    except (TypeError, ValueError):
+        params = set()
+    params.discard("self")
+    return params
 
-    Returns:
-        Row: A Row object
+
+# ########################### NEW STUFF #############################
+
+def _split_csv_attr(val: str | None, enum_cls: type[Enum] | None = None) -> tuple[str, ...]:
+    """Split CSV attribute into ordered tuple. If enum_cls is provided, map tokens to enum.value when possible.
+
+    - preserves order
+    - canonicalises tokens to enum.value when matched by name or value (case-insensitive)
+    - keeps unknown tokens as-is (you can change to drop/raise)
     """
-    return Row(
-        label=_attr(row_el, "label"),
-        content=row_el.text,
-        cond=_attr(row_el, "cond"),
-        alt=_attr(row_el, "alt"),
-        randomize=_bit(row_el, "randomize"),
-        groups=set(_attr(row_el, "groups").split(",")),
-    )
+    if not val:
+        return tuple()
+    tokens = [p.strip() for p in val.split(",") if p.strip()]
+    if enum_cls is None:
+        return tuple(tokens)
 
-
-def parse_rows(parent: ET.Element) -> tuple[Row, ...]:
-    """
-    Given an ElementTree representing a question (e.g. <radio>, <checkbox>), find all A <row> tags and return these as a tuple of Row objects
-
-    Args:
-        parent (ET.Element): A ET of a question (e.g. <radio>, <checkbox>)
-
-    Returns:
-        tuple[Row, ...]: List of Row objects
-    """
-
-    rows: List[Row] = []
-    for child in parent:
-        # Direct row declaration in XML
-        if child.tag == "row":
-            rows.append(parse_row(child))
-        # Fetch the source="xxx" from the insert, and add to the list of required defines
-        elif child.tag == "insert":
-            label = child.get("source")
-            #_REQUIRED_DEFINES.add(label)
-            # append a placeholder so we know the rows in this question refer to an external Define list
-            rows.append(DefineRef(source=label))
-
-    return tuple(rows)
-
-
-# ------------ COLUMNS ---------------
-
-
-def parse_col(col_el: ET.Element) -> Col:
-    """
-    Given an ElementTree <col> tag, covert into Col object
-
-    Args:
-        col_el (ET): A <col> tag as ElementTree
-
-    Returns:
-        Col: A Column object
-    """
-    return Col(
-        label=_attr(col_el, "label"),
-        content=col_el.text,
-        cond=_attr(col_el, "cond"),
-        alt=_attr(col_el, "alt"),
-        randomize=_bit(col_el, "randomize"),
-        groups=set(_attr(col_el, "groups").split(",")),
-    )
-
-
-def parse_cols(parent: ET.Element) -> tuple[Col, ...]:
-    """
-    Given an ElementTree representing a question (e.g. <radio>, <checkbox>), find all A <col> tags and return these as a tuple (list) of Column objects
-
-    Args:
-        parent (ET.Element): A ET of a question (e.g. <radio>, <checkbox>)
-
-    Returns:
-        tuple[Col, ...]: List of Column objects
-    """
-    return tuple(parse_col(r) for r in parent.findall("col"))
-
-
-# ------------ CHOICES ----------------
-def parse_choice(choice_el: ET.Element) -> Choice:
-    """
-    Given an ElementTree <choice> tag, covert into Choice object
-
-    Args:
-        col_el (ET): A <col> tag as ElementTree
-
-    Returns:
-        Col: A Column object
-    """
-    return Choice(
-        label=_attr(choice_el, "label"),
-        content=choice_el.text,
-        cond=_attr(choice_el, "cond"),
-        alt=_attr(choice_el, "alt"),
-        randomize=_bit(choice_el, "randomize"),
-        groups=set(_attr(choice_el, "groups").split(",")),
-    )
-
-
-def parse_choices(parent: ET.Element) -> tuple[Choice, ...]:
-    """
-    Given an ElementTree representing a question (e.g. <radio>, <checkbox>), find all A <choice> tags and return these as a tuple (list) of Choice objects
-
-    Args:
-        parent (ET.Element): A ET of a <select> question
-
-    Returns:
-        tuple[Choice, ...]: List of Column objects
-    """
-    return tuple(parse_choice(r) for r in parent.findall("choice"))
+    out: list[str] = []
+    for t in tokens:
+        tl = t.strip()
+        matched = None
+        for m in enum_cls:
+            if tl.lower() == str(m.value).lower() or tl.lower() == m.name.lower():
+                matched = str(m.value)
+                break
+        if matched:
+            out.append(matched)
+        else:
+            # keep raw token if it doesn't match any enum member
+            out.append(tl)
+    return tuple(out)
 
 
 # ------------ QUESTION TYPES ------------------
-def parse_radio(radio_el: ET.Element) -> RadioQuestion:
-    """
-    Given an ElementTree <radio> tag, convert into RadioQuestion object
+def question_base(el: ET.Element) -> dict:
+    """Extracts fields from question elements (e.g. <radio>, <checkbox>, etc.). Used by all question parsers to avoid code duplication.
     Args:
-        radio_el (ET.Element): A <radio> tag as ElementTree
-        Returns:
-        RadioQuestion: A RadioQuestion object
-    """
-    return RadioQuestion(
-        # Mandatory
-        label=_attr(radio_el, "label"),
-        title=_tag_text(radio_el, "title"),
-        rows=parse_rows(radio_el),
-        # Optional
-        comment=_tag_text(radio_el, "comment"),
-        randomize=_bit(radio_el, "randomize"),
-        cols=parse_cols(radio_el),
-        where=_parse_enum_set(radio_el, "where", Where),
-    )
-
-
-def parse_autofill(autofill_el: ET.Element) -> AutoFill:
-    """
-    Given an ElementTree <autofill> tag, convert into AutoFill object
-
-    Args:
-        autofill_el (ET.Element): A <autofill> tag as ElementTree
+        el (ET.Element): An ElementTree element representing a question tag
     Returns:
-        AutoFill: A AutoFill object
+        dict: A dictionary of fields (some may be None)
+
     """
-    return AutoFill(
-        label=_attr(autofill_el, "label"),
-        title=_tag_text(autofill_el, "title"),
-        rows=parse_rows(autofill_el),
-        where=_parse_enum_set(autofill_el, "where", Where),
-    )
+    # <exec> can be a child element of a question
+    exec_el = el.find("exec")
+    if exec_el is not None:
+        exec_obj = Exec(content=exec_el.text, when=_attr(exec_el, "when"))
+    else:
+        exec_obj = None
+
+    # <validate> can be a child element of a question
+    validate_el = el.find("validate")
+    if validate_el is not None:
+        validate_obj = Validate(content=validate_el.text)
+    else:
+        validate_obj = None
+
+    # <style> can be a child element of a question
+    style_el = el.find("style")
+    if style_el is not None:
+        style_obj = parse_style(style_el)
+    else:
+        style_obj = None
+
+    return {
+        # Attributes (main)
+        "label": _attr(el, "label"),
+        "size": _attr(el, "size"),
+        "verify": _attr(el, "verify"),
+        "range": _attr(el, "range"),
+        "translateable": _attr(el, "translateable"),
+        "cond": _attr(el, "cond"),
+        "randomize": _bit(el, "randomize"),
+        "optional": _bit(el, "optional"),
+        "where": _parse_enum_set(el, "where", Where),
+        "atleast": _bit(el, "atleast"),
+        "shuffle": _split_csv_attr(_attr(el, "shuffle"), Shuffle),
+        "rowShuffle": _split_csv_attr(_attr(el, "rowShuffle"), RowColChoiceShuffle),
+        "colShuffle": _split_csv_attr(_attr(el, "colShuffle"), RowColChoiceShuffle),
+        "choiceShuffle": _split_csv_attr(_attr(el, "choiceShuffle"), RowColChoiceShuffle),
+        "uses": _attr(el, "uses"),
+        # atm1d / styling
+        "ss_listDisplay": _attr(el, "ss:listDisplay"),
+        "atm1d_numCols": _attr(el, "atm1d:numCols"),
+        "atm1d_showInput": _attr(el, "atm1d:showInput"),
+        "atm1d_viewMode": _split_csv_attr(_attr(el, "atm1d:viewMode"), ViewMode),
+        "atm1d_large_minHeight": _attr(el, "atm1d:large_minHeight"),
+        "atm1d_large_maxHeight": _attr(el, "atm1d:large_maxHeight"),
+        "atm1d_large_minWidth": _attr(el, "atm1d:large_minWidth"),
+        "atm1d_large_maxWidth": _attr(el, "atm1d:large_maxWidth"),
+        "atm1d_large_buttonAlign": _split_csv_attr(_attr(el, "atm1d:large_buttonAlign"), Align),
+        "atm1d_large_contentAlign": _split_csv_attr(_attr(el, "atm1d:large_contentAlign"), Align),
+        "atm1d_small_minHeight": _attr(el, "atm1d:small_minHeight"),
+        "atm1d_small_maxHeight": _attr(el, "atm1d:small_maxHeight"),
+        "atm1d_small_minWidth": _attr(el, "atm1d:small_minWidth"),
+        "atm1d_small_maxWidth": _attr(el, "atm1d:small_maxWidth"),
+        "atm1d_small_buttonAlign": _split_csv_attr(_attr(el, "atm1d:small_buttonAlign"), Align),
+        "atm1d_small_contentAlign": _split_csv_attr(_attr(el, "atm1d:small_contentAlign"), Align),
+        # Tags
+        "title": _tag_text(el, "title"),
+        "comment": _tag_text(el, "comment"),
+        "rows": parse_rows(el),
+        "cols": parse_cols(el),
+        "choices": parse_choices(el),
+        # Child objects (that have attributes on the tags themselves)
+        "exec": exec_obj,
+        "validate": validate_obj,
+        "style": style_obj,
+        
+    }
+
+
+def element_base(el: ET.Element) -> dict:
+    """
+    Extracts fields for elements (e.g. <row>, <col>, <choice>, etc.). Used by all element parsers to avoid code duplication.
+
+    Args:
+        el (ET.Element): An ElementTree element representing a question tag"""
+    return {
+        # Mandatory
+        "label": _attr(el, "label"),
+        "content": el.text,
+        # Optional
+        "cond": _attr(el, "cond"),
+        "randomize": _bit(el, "randomize"),
+        "where": _parse_enum_set(el, "where", Where),
+        "optional": _bit(el, "optional"),
+        "alt": _attr(el, "alt"),
+        "value": _attr(el, "value"),
+        "verify": _attr(el, "verify"),
+        "translateable": _attr(el, "translateable"),
+        "shuffle": _parse_enum_set(el, "shuffle", Shuffle),
+    }
+
+
+def build_question(cls, el: ET.Element):
+    """
+    Builds a question object of the given class from the given XML element.
+
+    Args:
+        cls: The question class to instantiate (e.g. RadioQuestion)
+        el (ET.Element): The ElementTree element representing the question
+    Returns:
+        An instance of the given question class
+    """
+    dct = question_base(el)
+
+    # drop Nones
+    dct = {k: v for k, v in dct.items() if v is not None}
+
+    # keep only kwargs that cls accepts
+    allowed = _allowed_param_names(cls)
+    unknown = set(dct) - allowed
+    if unknown:
+        print(
+            f"[build_question] {cls.__name__} ignoring unexpected fields: {sorted(unknown)}"
+        )
+    if allowed:
+        dct = {k: v for k, v in dct.items() if k in allowed}
+
+    # Dictionary now only contains keys that cls accepts
+
+    # Return the constructed question object. Works by unpacking the dictionary into keyword arguments. E.g. RadioQuestion(**dct).
+    return cls(**dct)
+
+
+def build_element(cls, el: ET.Element):
+    """Builds an element object of the given class from the given XML element.
+    Args:
+        cls: The element class to instantiate (e.g. Row, Col, Choice)
+        el (ET.Element): The ElementTree element representing the element
+    Returns:
+        An instance of the given element class"""
+    dct = element_base(el)
+    # drop None values
+    dct = {k: v for k, v in dct.items() if v is not None}
+
+    # restrict to parameters the dataclass accepts
+    allowed = _allowed_param_names(cls)
+    unknown = [k for k in dct.keys() if k not in allowed]
+
+    def _meaningful(v):
+        return v is not None and v not in ("", (), [], {})
+
+    unexpected_nonempty = [k for k in unknown if _meaningful(dct.get(k))]
+    if unexpected_nonempty:
+        print(
+            f"[build_element] {cls.__name__} ignoring unexpected fields: {sorted(unexpected_nonempty)}"
+        )
+
+    # keep only allowed keys so cls(**dct) won't raise
+    dct = {k: v for k, v in dct.items() if k in allowed}
+
+    return cls(**dct)
+
+
+def parse_radio(radio_el: ET.Element) -> RadioQuestion:
+    """Parses a <radio> ElementTree element into a RadioQuestion object."""
+    return build_question(RadioQuestion, radio_el)
 
 
 def parse_checkbox(checkbox_el: ET.Element) -> CheckboxQuestion:
-    """
-    Given an ElementTree <checkbox> tag, convert into CheckboxQuestion object
-    Args:
-        checkbox_el (ET.Element): A <checkbox> tag as ElementTree
-    Returns:
-        CheckboxQuestion: A CheckboxQuestion object
-    """
-    return CheckboxQuestion(
-        # Mandatory
-        label=_attr(checkbox_el, "label"),
-        title=_tag_text(checkbox_el, "title"),
-        atleast=_int_attr(checkbox_el, "atleast", 1),
-        rows=parse_rows(checkbox_el),
-        # Optional
-        comment=_tag_text(checkbox_el, "comment"),
-        cols=parse_cols(checkbox_el),
-        randomize=_bit(checkbox_el, "randomize"),
-        where=_parse_enum_set(checkbox_el, "where", Where),
-    )
+    """Parses a <checkbox> ElementTree element into a CheckboxQuestion object."""
+    return build_question(CheckboxQuestion, checkbox_el)
 
 
 def parse_select(select_el: ET.Element) -> SelectQuestion:
-    """
-    Given an ElementTree <select> tag, convert into SelectQuestion object
+    """Parses a <select> ElementTree element into a SelectQuestion object."""
+    return build_question(SelectQuestion, select_el)
 
-    Args:
-        select_el (ET.Element): A <select> tag as ElementTree
-    Returns:
-        SelectQuestion: A SelectQuestion object
-    """
-    return SelectQuestion(
-        # Mandatory
-        label=_attr(select_el, "label"),
-        title=_tag_text(select_el, "title"),
-        choices=parse_choices(select_el),
-        # Optional
-        comment=_tag_text(select_el, "comment"),
-        randomize=_bit(select_el, "randomize"),
-        where=_parse_enum_set(select_el, "where", Where),
-    )
+
+def parse_autofill(autofill_el: ET.Element) -> AutoFill:
+    """Parses an <autofill> ElementTree element into an AutoFill object."""
+    return build_question(AutoFill, autofill_el)
 
 
 def parse_number(number_el: ET.Element) -> NumberQuestion:
-    """
-    Given an ElementTree <number> tag, convert into NumberQuestion object
-
-    Args:
-        number_el (ET.Element): A <number> tag as ElementTree
-    Returns:
-        NumberQuestion: A NumberQuestion object
-    """
-    return NumberQuestion(
-        # Mandatory
-        label=_attr(number_el, "label"),
-        title=_tag_text(number_el, "title"),
-        size=int(_attr(number_el, "size")),
-        # Optional
-        comment=_tag_text(number_el, "comment"),
-        rows=parse_rows(number_el),
-        cols=parse_cols(number_el),
-        where=_parse_enum_set(number_el, "where", Where),
-    )
+    """Parses a <number> ElementTree element into a NumberQuestion object."""
+    return build_question(NumberQuestion, number_el)
 
 
 def parse_float(float_el: ET.Element) -> FloatQuestion:
-    """
-    Given an ElementTree <float> tag, convert into FloatQuestion object
-
-    Args:
-        float_el (ET.Element): A <float> tag as ElementTree
-    Returns:
-        FloatQuestion: A FloatQuestion object
-    """
-    return FloatQuestion(
-        # Mandatory
-        label=_attr(float_el, "label"),
-        title=_tag_text(float_el, "title"),
-        size=_int_attr(float_el, "size", 40),
-        # Optional
-        comment=_tag_text(float_el, "comment"),
-        rows=parse_rows(float_el),
-        cols=parse_cols(float_el),
-        where=_parse_enum_set(float_el, "where", Where),
-    )
+    """Parses a <float> ElementTree element into a FloatQuestion object."""
+    return build_question(FloatQuestion, float_el)
 
 
 def parse_text(text_el: ET.Element) -> TextQuestion:
-    """
-    Given an ElementTree <text> tag, convert into TextQuestion object
-
-    Args:
-        text_el (ET.Element): A <text> tag as ElementTree
-        Returns:
-        TextQuestion: A TextQuestion object
-
-    Returns:
-        TextQuestion: A TextQuestion object
-    """
-    return TextQuestion(
-        # Mandatory
-        label=_attr(text_el, "label"),
-        title=_tag_text(text_el, "title"),
-        size=_int_attr(text_el, "size", 40),
-        # Optional
-        comment=_tag_text(text_el, "comment"),
-        rows=parse_rows(text_el),
-        cols=parse_cols(text_el),
-        where=_parse_enum_set(text_el, "where", Where),
-    )
+    """Parses a <text> ElementTree element into a TextQuestion object."""
+    return build_question(TextQuestion, text_el)
 
 
 def parse_textarea(textarea_el: ET.Element) -> TextAreaQuestion:
+    """Parses a <textarea> ElementTree element into a TextAreaQuestion object."""
+    return build_question(TextAreaQuestion, textarea_el)
+
+
+# -------------- ELEMENTS --------------------
+def parse_row(row_el: ET.Element) -> Row:
+    """Parses a <row> ElementTree element into a Row object."""
+    return build_element(Row, row_el)
+
+
+def parse_noanswer(na_el: ET.Element) -> NoAnswer:
+    """Parses a <noanswer> ElementTree element into a NoAnswer object."""
+    return build_element(NoAnswer, na_el)
+
+
+def parse_rows(parent: ET.Element) -> tuple[Row | NoAnswer, ...]:
     """
-    Given an ElementTree <textarea> tag, convert into TextAreaQuestion object
-
-    Args:
-        textarea_el (ET.Element): A <textarea> tag as ElementTree
-        Returns:
-        TextAreaQuestion: A TextAreaQuestion object
+    Collect both <row> and <noanswer> children and return tuple of Row/NoAnswer.
+    Keeps original behaviour (order preserved).
     """
-    return TextAreaQuestion(
-        # Mandatory
-        label=_attr(textarea_el, "label"),
-        title=_tag_text(textarea_el, "title"),
-        # Optional
-        size=_int_attr(textarea_el, "size", 40),
-        comment=_tag_text(textarea_el, "comment"),
-        rows=parse_rows(textarea_el),
-        cols=parse_cols(textarea_el),
-        where=_parse_enum_set(textarea_el, "where", Where),
-    )
+    rows = []
+    for child in parent:
+        if child.tag == "row":
+            rows.append(parse_row(child))
+        elif child.tag == "noanswer":
+            rows.append(parse_noanswer(child))
+        # keep existing handling of other tags (e.g. <insert>) elsewhere if present
+    return tuple(rows)
 
 
-# ---------- STRUCTURAL -----------
+def parse_col(col_el: ET.Element) -> Col:
+    """Parses a <col> ElementTree element into a Col object."""
+    return build_element(Col, col_el)
+
+
+def parse_cols(parent: ET.Element) -> tuple[Col, ...]:
+    """Parses all <col> children of the given parent element and returns a tuple of Col objects."""
+    return tuple(parse_col(el) for el in parent.findall("col"))
+
+
+def parse_choice(choice_el: ET.Element) -> Choice:
+    """Parses a <choice> ElementTree element into a Choice object."""
+    return build_element(Choice, choice_el)
+
+
+def parse_choices(parent: ET.Element) -> tuple[Choice, ...]:
+    """Parses all <choice> children of the given parent element and returns a tuple of Choice objects."""
+    return tuple(parse_choice(r) for r in parent.findall("choice"))
 
 
 def parse_block(block_el: ET.Element) -> Block:
@@ -382,7 +380,11 @@ def parse_block(block_el: ET.Element) -> Block:
             raise ValueError(
                 f"ERROR PARSING BLOCK {_attr(block_el, 'label')}. Found {child.tag} element in a block that does not have a parser"
             )
-    return Block(label=_attr(block_el, "label"), children=tuple(children))
+    return Block(
+        label=_attr(block_el, "label"),
+        cond=_attr(block_el, "cond"),
+        children=tuple(children),
+    )
 
 
 def parse_note(note_el: ET.Element) -> Note:
@@ -422,7 +424,9 @@ def parse_exec(exec_el: ET.Element) -> Exec:
         Exec: A Exec object
     """
     content = exec_el.text
-    return Exec(content=content)
+    when = _attr(exec_el, "when")
+    cond = _attr(exec_el, "cond")
+    return Exec(content=content, when=when, cond=cond)
 
 
 def parse_html(html_el: ET.Element) -> HTML:
@@ -533,40 +537,14 @@ def parse_goto(goto_el: ET.Element) -> GoTo:
 
 def parse_term(term_el: ET.Element) -> Terminate:
     return Terminate(
-        label=_attr(term_el, "label"),
-        cond=_attr(term_el, "cond"),
-        content=term_el.text
+        label=_attr(term_el, "label"), cond=_attr(term_el, "cond"), content=term_el.text
     )
-
-
-def parse_survey(root: ET.Element) -> tuple[Element, ...]:
-    """
-    Parse an entire survey XML file into a tuple of Element objects ### (this is for testing at the moment - not used) ####
-    
-    Args:
-        root (ET): XML ET root
-    Returns:
-        tuple[Element, ...]: Tuple of Element objects
-    """
-    # Load and parse the XML file
-    # root = ET.parse(src).getroot()
-    # Find all <define> elements and register them
-    #find_defines(root)
-    elements = []
-    for child in root:
-        tag = child.tag
-        if tag in _PARSERS:
-            elements.append(element_from_xml_element(child))
-        else:
-            # continue - uncomment to ignore unknown tags (for tessting)
-            raise ValueError(f"'{tag}' tag found in <survey> - unsupported")
-    return tuple(elements)
 
 
 def parse_res(res_el: ET.Element) -> Res:
     """
     Given an ElementTree <res> tag, convert into Res object. The content is the text within the tag.
-    
+
     Args:
         res_el (ET.Element): A <res> tag as ElementTree
     Returns:
@@ -578,7 +556,7 @@ def parse_res(res_el: ET.Element) -> Res:
 def parse_logic(logic_el: ET.Element) -> Logic:
     """
     Given an ElementTree <logic> tag, convert into Logic object.
-    
+
     Args:
         logic_el (ET.Element): A <logic> tag as ElementTree
     Returns:
@@ -588,27 +566,11 @@ def parse_logic(logic_el: ET.Element) -> Logic:
 
 
 def parse_style(style_el: ET.Element) -> Style:
-    """ 
-    Given an ElementTree <style> tag, convert into Style object. The content is the text within the tag.
-    Args:
-        style_el (ET.Element): A <style> tag as ElementTree
-    Returns:
-        Style: A Style object
-    """
-    return Style(
-        name=_attr(style_el, "name"),
-        label=_attr(style_el, "label"),
-        copy=_attr(style_el, "copy"),
-        cond=_attr(style_el, "cond"),
-        rows=_attr(style_el, "rows"),
-        cols=_attr(style_el, "cols"),
-        mode=_parse_enum_set(style_el, "mode", Mode),
-        after=_attr(style_el, "after"),
-        before=_attr(style_el, "before"),
-        withx=_attr(style_el, "with"),
-        wrap=_attr(style_el, "wrap"),
-        content=style_el.text,
-    )
+    """Build a Style object from a <style> element without passing unrelated attrs."""
+    name = _attr(style_el, "name")
+    typ = _attr(style_el, "type")
+    content = style_el.text
+    return Style(name=name, content=content, type=typ)
 
 
 def parse_sample_sources(sources_el: ET.Element) -> SampleSources:
@@ -663,7 +625,7 @@ def parse_var(var_el: ET.Element) -> Var:
 def parse_exit(exit_el: ET.Element) -> Exit:
     """
     Given an ElementTree <exit> tag, convert into Exit object
-    
+
     Args:
         exit_el (ET.Element): A <exit> tag as ElementTree
     Returns:
@@ -723,10 +685,12 @@ _PARSERS = {
     "var": parse_var,
     "exit": parse_exit,
     "condition": parse_condition,
+    "noanswer": parse_noanswer,
 }
 
 # Stack to show current path while parsing (for debugging)
 _PARSE_STACK: List[str] = []
+
 
 def _current_path() -> str:
     """Returns a strng reprresenting the current path in the XML being parsed, based on the _PARSE_STACK
@@ -735,6 +699,7 @@ def _current_path() -> str:
         str: A current path as a string
     """
     return " > ".join(_PARSE_STACK) or "<root>"
+
 
 def element_from_xml_element(xml_elm: ET.Element):
     """

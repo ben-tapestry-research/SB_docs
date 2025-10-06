@@ -1,7 +1,7 @@
 # survey_elements/__init__.py
 
 from .models.enums import (
-    Where, Grouping, Legend, RowColChoiceShuffle, Shuffle, Sort
+    Where, Grouping, Legend, RowColChoiceShuffle, Shuffle, Sort, ViewMode, Align
 )
 from .models.questions import (
     Element, Cell, Question, Row, Col, Choice,
@@ -15,7 +15,7 @@ from .utils.xml_helpers import to_xml_string
 
 __all__ = [
     # enums
-    "Where","Grouping","Legend","RowColChoiceShuffle","Shuffle","Sort",
+    "Where","Grouping","Legend","RowColChoiceShuffle","Shuffle","Sort","ViewMode","Align",
     # core
     "Element","Cell","Question","Row","Col","Choice",
     # questions
