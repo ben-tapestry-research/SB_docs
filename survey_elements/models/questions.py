@@ -213,14 +213,15 @@ class Question(Element):
     # Mandatory elements
     title: str
 
+    # Title Editability
     editable: bool = False # Whether the use is allowed to edit the question text
-    
     editable_obj: Optional[EditableTemplate] = None
     historic_title: Optional[str] = "" # Stores original title before render
     start_delimiter: str = r"{{"
     end_delimiter: str = r"}}"
 
-    parent_cluster: Optional[QuestionCluster] = None 
+    suspend: Suspend
+
     # Optional xml elements
     comment: str | None = None
     below: str | None = None
