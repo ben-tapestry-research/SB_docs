@@ -50,6 +50,7 @@ from survey_elements.models.structural import (
     Exec,
     Validate,
     Style,
+    Suspend
 )
 from survey_elements.utils.editables import EditableTemplate
 from survey_elements.models import enums as _enums  # adjust import path if needed
@@ -246,7 +247,7 @@ class Question(Element):
     title: str
 
     # Title Editability
-    editable: bool = False # Whether the use is allowed to edit the question text
+    editable: bool = False  # Whether the use is allowed to edit the question text
     editable_obj: Optional[EditableTemplate] = None
     historic_title: Optional[str] = ""  # Stores original title before render
     start_delimiter: str = r"{{"
@@ -299,6 +300,36 @@ class Question(Element):
     atm1d_small_buttonAlign: tuple[str, ...] = field(default_factory=tuple)
     atm1d_small_contentAlign: tuple[str, ...] = field(default_factory=tuple)
 
+    cardsort_displayNavigation: str | None = None
+    cardsort_displayCounter: str | None = None
+    cardsort_displayProgress: str | None = None
+    cardsort_animationDuration: str | None = None
+    cardsort_wrapBuckets: str | None = None
+    cardsort_bucketsPerRow: str | None = None
+    cardsort_themeFile: str | None = None
+    cardsort_automaticAdvance: str | None = None
+    cardsort_iconButtonCSS: str | None = None
+    cardsort_iconButtonDisableCSS: str | None = None
+    cardsort_iconButtonHoverCSS: str | None = None
+    cardsort_buttonPreviousHTML: str | None = None
+    cardsort_buttonNextHTML: str | None = None
+    cardsort_cardCSS: str | None = None
+    cardsort_cardDisableCSS: str | None = None
+    cardsort_cardHoverCSS: str | None = None
+    cardsort_cardSelectCSS: str | None = None
+    cardsort_dragAndDrop: str | None = None
+    cardsort_bucketCSS: str | None = None
+    cardsort_bucketDisableCSS: str | None = None
+    cardsort_bucketHoverCSS: str | None = None
+    cardsort_bucketSelectCSS: str | None = None
+    cardsort_bucketCountCSS: str | None = None
+    cardsort_bucketCountDisableCSS: str | None = None
+    cardsort_bucketCountHoverCSS: str | None = None
+    cardsort_progressCSS: str | None = None
+    cardsort_contentsCardCSS: str | None = None
+    cardsort_completionHTML: str | None = None
+    cardsort_completionCSS: str | None = None
+
     # shuffle fields as CSV strings
     shuffle: tuple[str, ...] = field(default_factory=tuple)
     rowShuffle: tuple[str, ...] = field(default_factory=tuple)
@@ -315,7 +346,6 @@ class Question(Element):
         "colCond": str_,
         "colLegend": str_,
         "colShuffle": ("colShuffle", _join_csv_field),
-        # shuffle is a set[Shuffle] -> emit CSV of enum values
         "shuffle": ("shuffle", _join_csv_field),
         "shuffleBy": str_,
         "sortChoices": csv,
@@ -326,7 +356,9 @@ class Question(Element):
         "virtual": str_,
         "ss_listDisplay": ("ss:listDisplay", str_),
         "size": str_,
-        # atm1d mappings MUST use the colon form as the XML name
+        "rowShuffle": ("rowShuffle", _join_csv_field),
+        "colShuffle": ("colShuffle", _join_csv_field),
+        # atm1d
         "atm1d_numCols": ("atm1d:numCols", str_),
         "atm1d_showInput": ("atm1d:showInput", str_),
         "atm1d_viewMode": ("atm1d:viewMode", _join_csv_field),
@@ -334,7 +366,6 @@ class Question(Element):
         "atm1d_large_maxHeight": ("atm1d:large_maxHeight", str_),
         "atm1d_large_minWidth": ("atm1d:large_minWidth", str_),
         "atm1d_large_maxWidth": ("atm1d:large_maxWidth", str_),
-        # buttonAlign stored as a set[Align]: emit first selected value (or None)
         "atm1d_large_buttonAlign": ("atm1d:large_buttonAlign", _join_csv_field),
         "atm1d_large_contentAlign": ("atm1d:large_contentAlign", _join_csv_field),
         "atm1d_small_minHeight": ("atm1d:small_minHeight", str_),
@@ -342,9 +373,37 @@ class Question(Element):
         "atm1d_small_minWidth": ("atm1d:small_minWidth", str_),
         "atm1d_small_maxWidth": ("atm1d:small_maxWidth", str_),
         "atm1d_small_buttonAlign": ("atm1d:small_buttonAlign", _join_csv_field),
-        "rowShuffle": ("rowShuffle", _join_csv_field),
-        "colShuffle": ("colShuffle", _join_csv_field),
         "atm1d_small_contentAlign": ("atm1d:small_contentAlign", _join_csv_field),
+        # cardsort
+        "cardsort_displayNavigation": ("cardsort:displayNavigation", str_),
+        "cardsort_displayCounter": ("cardsort:displayCounter", str_),
+        "cardsort_displayProgress": ("cardsort:displayProgress", str_),
+        "cardsort_animationDuration": ("cardsort:animationDuration", str_),
+        "cardsort_wrapBuckets": ("cardsort:wrapBuckets", str_),
+        "cardsort_bucketsPerRow": ("cardsort:bucketsPerRow", str_),
+        "cardsort_themeFile": ("cardsort:themeFile", str_),
+        "cardsort_automaticAdvance": ("cardsort:automaticAdvance", str_),
+        "cardsort_iconButtonCSS": ("cardsort:iconButtonCSS", str_),
+        "cardsort_iconButtonDisableCSS": ("cardsort:iconButtonDisableCSS", str_),
+        "cardsort_iconButtonHoverCSS": ("cardsort:iconButtonHoverCSS", str_),
+        "cardsort_buttonPreviousHTML": ("cardsort:buttonPreviousHTML", str_),
+        "cardsort_buttonNextHTML": ("cardsort:buttonNextHTML", str_),
+        "cardsort_cardCSS": ("cardsort:cardCSS", str_),
+        "cardsort_cardDisableCSS": ("cardsort:cardDisableCSS", str_),
+        "cardsort_cardHoverCSS": ("cardsort:cardHoverCSS", str_),
+        "cardsort_cardSelectCSS": ("cardsort:cardSelectCSS", str_),
+        "cardsort_dragAndDrop": ("cardsort:dragAndDrop", str_),
+        "cardsort_bucketCSS": ("cardsort:bucketCSS", str_),
+        "cardsort_bucketDisableCSS": ("cardsort:bucketDisableCSS", str_),
+        "cardsort_bucketHoverCSS": ("cardsort:bucketHoverCSS", str_),
+        "cardsort_bucketSelectCSS": ("cardsort:bucketSelectCSS", str_),
+        "cardsort_bucketCountCSS": ("cardsort:bucketCountCSS", str_),
+        "cardsort_bucketCountDisableCSS": ("cardsort:bucketCountDisableCSS", str_),
+        "cardsort_bucketCountHoverCSS": ("cardsort:bucketCountHoverCSS", str_),
+        "cardsort_progressCSS": ("cardsort:progressCSS", str_),
+        "cardsort_contentsCardCSS": ("cardsort:contentsCardCSS", str_),
+        "cardsort_completionHTML": ("cardsort:completionHTML", str_),
+        "cardsort_completionCSS": ("cardsort:completionCSS", str_),
     }
 
     CHILD_TEXT_MAP = {
