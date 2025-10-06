@@ -1,0 +1,38 @@
+digraph imports {
+  rankdir=LR;
+  node [shape=box];
+  "survey_elements/__init__.py";
+  "survey_elements/models/__init__.py";
+  "survey_elements/models/enums.py";
+  "survey_elements/models/logic.py";
+  "survey_elements/models/questions.py";
+  "survey_elements/models/structural.py";
+  "survey_elements/modules.py";
+  "survey_elements/parsing/__init__.py";
+  "survey_elements/parsing/xml_parser.py";
+  "survey_elements/survey.py";
+  "survey_elements/utils/__init__.py";
+  "survey_elements/utils/editables.py";
+  "survey_elements/utils/xml_helpers.py";
+  "survey_elements/models/questions.py" -> "survey_elements/models/enums.py";
+  "survey_elements/models/questions.py" -> "survey_elements/models/logic.py";
+  "survey_elements/models/questions.py" -> "survey_elements/models/structural.py";
+  "survey_elements/models/questions.py" -> "survey_elements/utils/editables.py";
+  "survey_elements/models/questions.py" -> "survey_elements/utils/xml_helpers.py";
+  "survey_elements/models/structural.py" -> "survey_elements/models/enums.py";
+  "survey_elements/models/structural.py" -> "survey_elements/utils/editables.py";
+  "survey_elements/modules.py" -> "api/forsta_api_utils.py";
+  "survey_elements/modules.py" -> "survey_elements/models/logic.py";
+  "survey_elements/modules.py" -> "survey_elements/models/questions.py";
+  "survey_elements/modules.py" -> "survey_elements/models/structural.py";
+  "survey_elements/modules.py" -> "survey_elements/parsing/xml_parser.py";
+  "survey_elements/parsing/xml_parser.py" -> "survey_elements/models/enums.py";
+  "survey_elements/parsing/xml_parser.py" -> "survey_elements/models/logic.py";
+  "survey_elements/parsing/xml_parser.py" -> "survey_elements/models/questions.py";
+  "survey_elements/parsing/xml_parser.py" -> "survey_elements/models/structural.py";
+  "survey_elements/parsing/xml_parser.py" -> "survey_elements/utils/xml_helpers.py";
+  "survey_elements/survey.py" -> "survey_elements/models/logic.py";
+  "survey_elements/survey.py" -> "survey_elements/models/questions.py";
+  "survey_elements/survey.py" -> "survey_elements/models/structural.py";
+  "survey_elements/survey.py" -> "survey_elements/modules.py";
+}

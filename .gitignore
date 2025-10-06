@@ -36,3 +36,19 @@ xml preview.py
 keys.env
 tester.py
 tester.py
+
+
+# Sphinx build output
+docs/_build/
+docs/_output/
+docs/_autosummary/
+
+# Sphinx cache (used for incremental builds)
+docs/.doctrees/
+docs/_doctrees/
+
+# Editor or OS cruft (optional but helpful)
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
