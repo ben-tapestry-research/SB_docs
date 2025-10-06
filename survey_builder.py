@@ -14,8 +14,9 @@ class ModuleSelector(tk.Frame):
     
     
     """
-    def __init__(self, parent, module_list: List[str], on_remove: Optional[callable]=None, **kwargs):
+    def __init__(self, parent, survey_builder: "SurveyBuilderApp",module_list: List[str], on_remove: Optional[callable]=None, **kwargs):
         super().__init__(parent, **kwargs)
+        self.survey_builder = survey_builder
         self.on_remove = on_remove
         self.module_name = tk.StringVar(value="")
         self.module_list = ['Module1', "Module2", "Module3"]
@@ -32,7 +33,7 @@ class ModuleSelector(tk.Frame):
 
         # Label to show selected module
         self.label = ttk.Label(self, textvariable=self.module_name, style = "SubSubHeaderAlternative.TLabel")
-        self.label.bind("<Button-1>", lambda e: self.module_info(self.module_name))
+        self.label.bind("<Button-1>", lambda e: self.open_module_info(parent = self, module_name = self.module_name))
         self.label.pack(pady=5)
 
 
@@ -83,33 +84,41 @@ class ModuleSelector(tk.Frame):
         window.bind("<Escape>", lambda e: window.destroy())
 
         window.wait_window()  # Wait for the dialog to close before continuing
+    
+    def open_module_info(self, module_name: str):
+        """"""
+        ModuleInfo(parent = self, module_name = module_name, survey_builder = self.survey_builder)  # Open the set configuration window
 
-    def module_info(self, module_name: str):
+
+
+class ModuleInfo(tk.Toplevel):
+    """ 
+    Toplevel class that allows users to view and interact with a module
+    """
+    def __init__(self, parent: tk.Frame, module_name: str, survey_builder: "SurveyBuilderApp"):
         """
         Opens pop-up window with information on the module
         """
         if not module_name:
             # No module selected
             return
-        info_window = tk.Toplevel(self)
-        info_window.title(module_name)
-        info_window.transient(self)
-        info_window.grab_set()
+        super().__init__(parent)
+        self.parent = parent
 
-        info_frame = tk.Frame(info_window)
+        self.title(module_name)
+        self.transient(parent)
+        self.grab_set()
+
+        info_frame = tk.Frame(self)
         info_frame.pack(pady=10,padx = 10)
         
 
-
-
-
-
-
 class ModuleList(tk.Frame):
     """Container for multiple ModuleSelectors with add button and scroll support."""
-    def __init__(self, parent, module_list: List[str],**kwargs):
+    def __init__(self, parent, survey_builder, module_list: List[str], **kwargs):
         super().__init__(parent, **kwargs)
         self.module_list = module_list
+        self.survey_builder = survey_builder
         # Scrollable canvas
         canvas = tk.Canvas(self, borderwidth=0)
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
@@ -135,7 +144,7 @@ class ModuleList(tk.Frame):
 
     def add_module_box(self):
         """Add a new ModuleSelector box."""
-        module_box = ModuleSelector(self.scrollable_frame, module_list=self.module_list)
+        module_box = ModuleSelector(self.scrollable_frame, survey_builder = self.survey_builder, module_list=self.module_list)
         module_box.pack(fill="x", pady=5, padx=5, before=self.add_button)
 
 
@@ -151,25 +160,16 @@ class SurveyBuilderApp(tk.Frame):
         """
         super().__init__(master)  # Ensure tk.Frame is initialized with the master
         self._app_class = self.__class__
-        intermediatory = SurveyBuilderIntermediatory
+        intermediatory = SurveyBuilderIntermediatory()
         self.grid(row=0, column=0, sticky="nsew")
         # Header
         title = ttk.Label(self, text="Survey Builder", style = "MainHeader.TLabel")
         title.grid(row=1, column=0, columnspan=3, pady=10, sticky="n")
 
 
-        sys.path.insert(1,r"C:\Users\GeorgePrice\git\SurveyBuilder\Survey-Builder")
-        load_dotenv(dotenv_path=r"C:\Users\GeorgePrice\git\SurveyBuilder\Survey-Builder\keys.env")
-
-
-        # TODO Should be in a front-end class
-        modules_dict = fetch_modules() # Connect to forsta API
-        module_titles = [modules_dict[m].title for m in modules_dict.keys]
-
-        print(modules_dict)
         modules_frame = tk.Frame(self)
         modules_frame.grid(row = 2, column = 0)
-        module_list = ModuleList(modules_frame, module_titles)
+        module_list = ModuleList(modules_frame, survey_builder = self, module_list = intermediatory.module_titles)
         module_list.pack(fill="both", expand=True, padx=10, pady=10)
 
 
@@ -177,12 +177,17 @@ class SurveyBuilderIntermediatory:
     """
     Handles interactions between the SurveyBuilder backend structure and the frontend
     """
+
+
+    sys.path.insert(1,r"C:\Users\GeorgePrice\git\SurveyBuilder\Survey-Builder")
+    load_dotenv(dotenv_path=r"C:\Users\GeorgePrice\git\SurveyBuilder\Survey-Builder\keys.env")
+
     modules_dict = fetch_modules()
     
     @property
     def module_titles(self):
-        return [self.modules_dict[m].title for m in self.modules_dict.keys]
+        return [self.modules_dict[m].get('title') for m in self.modules_dict.keys()]
     
     @property
     def module_paths(self):
-        return [self.modules_dict[m].project_path for m in self.modules_dict.keys]
+        return [self.modules_dict[m].get('project_path') for m in self.modules_dict.keys()]
