@@ -39,13 +39,13 @@ autodoc_default_options = {
 # If imports fail due to heavy deps, mock them here:
 # autodoc_mock_imports = ["pandas", "numpy", "requests"]
 
-html_theme = "furo"
+html_theme = "sphinx_rtd_theme"
+html_theme_options = {
+    "collapse_navigation": False,
+    "navigation_depth": 2,
+    "titles_only": True,
+}
 project = "Survey Builder"
 myst_enable_extensions = ["colon_fence"]
 
-extensions += ["sphinx.ext.intersphinx"]
-intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", {}),
-    # add libraries you reference, e.g.:
-    # "requests": ("https://requests.readthedocs.io/en/latest/", {}),
-}
+extensions += ["sphinx_design"]
