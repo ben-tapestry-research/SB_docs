@@ -1,3 +1,4 @@
 sphinx>=7
 furo               # or sphinx-rtd-theme, pydata-sphinx-theme, etc.
 sphinx-design      # if you use it
+myst-parser      # if you use MyST markdown
