@@ -2,3 +2,4 @@ sphinx>=7
 furo
 sphinx-design
 myst-parser>=2
+sphinx-rtd-theme>=2.0
